@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Calendar, Plus, AlertCircle, ArrowUpRight } from 'lucide-react';
+import {
+  CheckCircle,
+  Calendar,
+  Plus,
+  AlertCircle,
+  ArrowUpRight,
+  ChevronDown,
+  ChevronUp,
+  Utensils,
+} from 'lucide-react';
 
 export default function PatientDetailModal({ patientId, onQuickLog, onSessionUpdated }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sessionLoading, setSessionLoading] = useState(false);
+  const [showFoodLog, setShowFoodLog] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -363,67 +373,97 @@ export default function PatientDetailModal({ patientId, onQuickLog, onSessionUpd
         </div>
       </div>
 
-      {/* Recent Logged Food Items Table with Quantities */}
-      <div className="space-y-2">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-mute">
-          Recent Logged Food Intake Table (with Quantities)
-        </h4>
-        {data.recent_meals && data.recent_meals.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-tint/70 text-mute font-bold uppercase tracking-wider border-b border-line text-[10px]">
-                <tr>
-                  <th className="py-2 px-3">Food Item</th>
-                  <th className="py-2 px-3">Quantity &amp; Serving</th>
-                  <th className="py-2 px-3 text-right">Potassium (K)</th>
-                  <th className="py-2 px-3 text-right">Fluid</th>
-                  <th className="py-2 px-3 text-right">Phosphorus (P)</th>
-                  <th className="py-2 px-3 text-right">Sodium (Na)</th>
-                  <th className="py-2 px-3 text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line text-[11px]">
-                {data.recent_meals.slice(0, 4).flatMap((m, mIdx) => {
-                  if (Array.isArray(m.items) && m.items.length > 0) {
-                    return m.items.map((it, itIdx) => (
-                      <tr key={`${mIdx}-${itIdx}`} className="hover:bg-tint-light/40 transition-colors">
-                        <td className="py-2 px-3 font-semibold text-ink capitalize">
-                          {it.food}
-                        </td>
-                        <td className="py-2 px-3">
-                          <span className="inline-block px-2 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[10px] border border-teal/20">
-                            {it.qty ? `${it.qty} ${it.unit || 'serving'}` : (it.unit || '1 serving')}
-                          </span>
-                        </td>
-                        <td className="py-2 px-3 text-right text-ink font-semibold">{it.k} mg</td>
-                        <td className="py-2 px-3 text-right text-teal-dark font-semibold">{it.fluid} mL</td>
-                        <td className="py-2 px-3 text-right text-mute">{it.p} mg</td>
-                        <td className="py-2 px-3 text-right text-mute">{it.na} mg</td>
-                        <td className="py-2 px-3 text-right text-mute font-medium">{m.day}</td>
-                      </tr>
-                    ));
-                  }
-                  return (
-                    <tr key={mIdx} className="hover:bg-tint-light/40 transition-colors">
-                      <td className="py-2 px-3 font-semibold text-ink capitalize">{m.text}</td>
-                      <td className="py-2 px-3">
-                        <span className="inline-block px-2 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[10px] border border-teal/20">
-                          1 serving
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 text-right text-ink font-semibold">{m.k} mg</td>
-                      <td className="py-2 px-3 text-right text-teal-dark font-semibold">{m.fluid} mL</td>
-                      <td className="py-2 px-3 text-right text-mute">{m.p} mg</td>
-                      <td className="py-2 px-3 text-right text-mute">{m.na} mg</td>
-                      <td className="py-2 px-3 text-right text-mute font-medium">{m.day}</td>
+      {/* Collapsible Recent Logged Food Items Table (Hidden by Default, Expands on Click) */}
+      <div className="p-4 rounded-xl border border-line bg-bg space-y-2.5 transition-all">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setShowFoodLog(!showFoodLog)}
+            className="flex items-center gap-2 text-left group"
+          >
+            <div className="w-7 h-7 rounded-lg bg-tint text-teal flex items-center justify-center shrink-0">
+              <Utensils size={14} />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-ink uppercase tracking-wider group-hover:text-teal transition-colors">
+                Patient Food Intake Log
+              </h4>
+              <span className="text-[10px] text-mute block">
+                {showFoodLog ? 'Tap to hide log' : 'Tap to expand itemized meal table'}
+              </span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowFoodLog(!showFoodLog)}
+            className="px-2.5 py-1 rounded-lg border border-line bg-white hover:bg-tint-light text-ink text-xs font-semibold transition-all flex items-center gap-1 shadow-2xs"
+          >
+            {showFoodLog ? <ChevronUp size={13} className="text-teal" /> : <ChevronDown size={13} className="text-teal" />}
+            {showFoodLog ? 'Hide Food Log' : 'View Food Log'}
+          </button>
+        </div>
+
+        {showFoodLog && (
+          <div className="pt-1 animate-fadeSlideUp">
+            {data.recent_meals && data.recent_meals.length > 0 ? (
+              <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-gradient-to-r from-tint-light to-tint/60 text-teal-dark font-bold uppercase tracking-wider border-b border-line text-[10px]">
+                    <tr>
+                      <th className="py-2 px-3">Food Item</th>
+                      <th className="py-2 px-3">Quantity &amp; Serving</th>
+                      <th className="py-2 px-3 text-right">Potassium (K)</th>
+                      <th className="py-2 px-3 text-right">Fluid</th>
+                      <th className="py-2 px-3 text-right">Phosphorus (P)</th>
+                      <th className="py-2 px-3 text-right">Sodium (Na)</th>
+                      <th className="py-2 px-3 text-right">Date</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-line text-[11px]">
+                    {data.recent_meals.slice(0, 4).flatMap((m, mIdx) => {
+                      if (Array.isArray(m.items) && m.items.length > 0) {
+                        return m.items.map((it, itIdx) => (
+                          <tr key={`${mIdx}-${itIdx}`} className="hover:bg-tint-light/40 transition-colors">
+                            <td className="py-2 px-3 font-semibold text-ink capitalize">
+                              {it.food}
+                            </td>
+                            <td className="py-2 px-3">
+                              <span className="inline-block px-2 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[10px] border border-teal/20">
+                                {it.qty ? `${it.qty} ${it.unit || 'serving'}` : (it.unit || '1 serving')}
+                              </span>
+                            </td>
+                            <td className="py-2 px-3 text-right text-ink font-semibold">{it.k} mg</td>
+                            <td className="py-2 px-3 text-right text-teal-dark font-semibold">{it.fluid} mL</td>
+                            <td className="py-2 px-3 text-right text-mute">{it.p} mg</td>
+                            <td className="py-2 px-3 text-right text-mute">{it.na} mg</td>
+                            <td className="py-2 px-3 text-right text-mute font-medium">{m.day}</td>
+                          </tr>
+                        ));
+                      }
+                      return (
+                        <tr key={mIdx} className="hover:bg-tint-light/40 transition-colors">
+                          <td className="py-2 px-3 font-semibold text-ink capitalize">{m.text}</td>
+                          <td className="py-2 px-3">
+                            <span className="inline-block px-2 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[10px] border border-teal/20">
+                              1 serving
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-right text-ink font-semibold">{m.k} mg</td>
+                          <td className="py-2 px-3 text-right text-teal-dark font-semibold">{m.fluid} mL</td>
+                          <td className="py-2 px-3 text-right text-mute">{m.p} mg</td>
+                          <td className="py-2 px-3 text-right text-mute">{m.na} mg</td>
+                          <td className="py-2 px-3 text-right text-mute font-medium">{m.day}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-xs text-mute py-2">No meals logged yet.</p>
+            )}
           </div>
-        ) : (
-          <p className="text-xs text-mute py-2">No meals logged yet.</p>
         )}
       </div>
 

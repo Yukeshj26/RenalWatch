@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Utensils, AlertTriangle, ShieldAlert, CheckCircle2, Calendar, Phone, HeartPulse, Clock, Sparkles } from 'lucide-react';
+import {
+  Activity,
+  Utensils,
+  AlertTriangle,
+  ShieldAlert,
+  CheckCircle2,
+  Calendar,
+  Phone,
+  HeartPulse,
+  Clock,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+} from 'lucide-react';
 
 export default function PersonalizedPatientPortal({
   patient,
@@ -10,6 +24,7 @@ export default function PersonalizedPatientPortal({
 }) {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showFoodLog, setShowFoodLog] = useState(false);
 
   useEffect(() => {
     if (!patient?.id) return;
@@ -485,74 +500,107 @@ export default function PersonalizedPatientPortal({
           {/* 7-Day Weight Sparkline */}
           {sparkline}
 
-          {/* Recent Meals Recorded Table with Quantities */}
-          <div className="p-6 rounded-2xl bg-white border border-line shadow-sm space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-line">
-              <div>
-                <h4 className="font-heading font-bold text-ink text-sm flex items-center gap-2">
-                  <Utensils size={15} className="text-teal" /> Logged Food Intake Table (with Quantities)
-                </h4>
-                <p className="text-[11px] text-mute mt-0.5">
-                  Itemized dietary log mapped against Indian Food Composition Tables (IFCT)
-                </p>
-              </div>
+          {/* Collapsible Food Log Section (Hidden by Default, Expands on Click) */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-white border border-line shadow-sm space-y-3 transition-all">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-line">
               <button
-                onClick={onOpenFoodModal}
-                className="text-xs text-teal font-semibold hover:underline"
+                type="button"
+                onClick={() => setShowFoodLog(!showFoodLog)}
+                className="flex items-center gap-3 text-left group transition-all"
               >
-                + Check &amp; Log Meal
+                <div className="w-9 h-9 rounded-xl bg-tint text-teal group-hover:bg-teal group-hover:text-white transition-all flex items-center justify-center shrink-0 shadow-xs">
+                  <Utensils size={18} />
+                </div>
+                <div>
+                  <h4 className="font-heading font-bold text-ink text-sm flex items-center gap-2 group-hover:text-teal transition-colors">
+                    Food &amp; Meal Intake Log
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-tint-light text-teal-dark border border-teal/20">
+                      {mealItems.length} logged item{mealItems.length === 1 ? '' : 's'}
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-mute flex items-center gap-1.5 mt-0.5">
+                    <span>{showFoodLog ? 'Tap to hide food table' : 'Tap to expand itemized food table'}</span>
+                    <span className="text-teal font-bold underline">
+                      {showFoodLog ? '▴ Collapse' : '▾ Click to View Log'}
+                    </span>
+                  </p>
+                </div>
               </button>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowFoodLog(!showFoodLog)}
+                  className="px-3.5 py-1.5 rounded-xl border border-line bg-bg hover:bg-tint-light hover:border-teal/30 text-ink text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs"
+                >
+                  {showFoodLog ? <ChevronUp size={14} className="text-teal" /> : <ChevronDown size={14} className="text-teal" />}
+                  {showFoodLog ? 'Hide Food Log' : 'View Food Log'}
+                </button>
+
+                <button
+                  onClick={onOpenFoodModal}
+                  className="px-3.5 py-1.5 rounded-xl bg-teal hover:bg-teal-dark text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1"
+                >
+                  <Plus size={13} />
+                  Check &amp; Log Meal
+                </button>
+              </div>
             </div>
 
-            {mealItems && mealItems.length > 0 ? (
-              <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-tint/70 text-mute font-bold uppercase tracking-wider border-b border-line text-[10px]">
-                    <tr>
-                      <th className="py-2.5 px-3">Food Item</th>
-                      <th className="py-2.5 px-3">Quantity &amp; Serving</th>
-                      <th className="py-2.5 px-3 text-right">Potassium (K)</th>
-                      <th className="py-2.5 px-3 text-right">Fluid</th>
-                      <th className="py-2.5 px-3 text-right">Phosphorus (P)</th>
-                      <th className="py-2.5 px-3 text-right">Sodium (Na)</th>
-                      <th className="py-2.5 px-3 text-right">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line text-[11px]">
-                    {mealItems.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-tint-light/40 transition-colors">
-                        <td className="py-2.5 px-3 font-semibold text-ink capitalize">
-                          {item.food}
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <span className="inline-block px-2.5 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[11px] border border-teal/20">
-                            {item.qty}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-ink font-semibold">
-                          {item.k} mg
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-teal-dark font-semibold">
-                          {item.fluid} mL
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-mute">
-                          {item.p} mg
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-mute">
-                          {item.na} mg
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-mute font-medium">
-                          {item.day}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {/* Complete Food Log Table: Only visible when showFoodLog is true */}
+            {showFoodLog && (
+              <div className="pt-2 animate-fadeSlideUp">
+                {mealItems && mealItems.length > 0 ? (
+                  <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="bg-gradient-to-r from-tint-light to-tint/60 text-teal-dark font-bold uppercase tracking-wider border-b border-line text-[10px]">
+                        <tr>
+                          <th className="py-2.5 px-3">Food Item</th>
+                          <th className="py-2.5 px-3">Quantity &amp; Serving</th>
+                          <th className="py-2.5 px-3 text-right">Potassium (K)</th>
+                          <th className="py-2.5 px-3 text-right">Fluid</th>
+                          <th className="py-2.5 px-3 text-right">Phosphorus (P)</th>
+                          <th className="py-2.5 px-3 text-right">Sodium (Na)</th>
+                          <th className="py-2.5 px-3 text-right">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line text-[11px]">
+                        {mealItems.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-tint-light/40 transition-colors">
+                            <td className="py-2.5 px-3 font-semibold text-ink capitalize">
+                              {item.food}
+                            </td>
+                            <td className="py-2.5 px-3">
+                              <span className="inline-block px-2.5 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[11px] border border-teal/20">
+                                {item.qty}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-ink font-semibold">
+                              {item.k} mg
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-teal-dark font-semibold">
+                              {item.fluid} mL
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-mute">
+                              {item.p} mg
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-mute">
+                              {item.na} mg
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-mute font-medium">
+                              {item.day}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-mute py-4 text-center">
+                    No meals recorded today. Tap "Check &amp; Log Meal" to add what you ate.
+                  </p>
+                )}
               </div>
-            ) : (
-              <p className="text-xs text-mute py-4 text-center">
-                No meals recorded today. Tap "Check &amp; Log Meal" to add what you ate.
-              </p>
             )}
           </div>
         </div>
