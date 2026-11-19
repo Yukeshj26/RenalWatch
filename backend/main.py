@@ -13,13 +13,15 @@ from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Optional
+import secrets
+import time
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from backend import db, risk, nutrition, safety, note_analyzer
+from backend import db, risk, nutrition, safety, note_analyzer, sms
 
 # ---------------------------------------------------------------------------
 # Pydantic request / response models
@@ -62,6 +64,15 @@ class RegisterBody(BaseModel):
     phone: str
     password: str
     language: str = "en"
+
+
+class SendOtpBody(BaseModel):
+    phone: str
+
+
+class VerifyOtpBody(BaseModel):
+    phone: str
+    otp: str
 
 
 class LoginBody(BaseModel):
@@ -231,15 +242,99 @@ def patient_state(pid: int) -> dict:
 # Authentication & Registration Endpoints
 # ---------------------------------------------------------------------------
 
+@app.post("/api/auth/otp/send")
+def send_otp(body: SendOtpBody):
+    """Generate and dispatch a real carrier SMS OTP to the patient's mobile number."""
+    if not body.phone or len(body.phone.strip()) < 8:
+        raise HTTPException(400, "A valid 10-digit mobile number is required")
+
+    phone_clean = sms.clean_phone(body.phone)
+    # Generate cryptographically secure 6-digit OTP
+    otp_code = f"{secrets.randbelow(900000) + 100000}"
+    expires_at = int(time.time()) + 300  # 5 minutes validity
+    now_iso = datetime.utcnow().isoformat()
+
+    c = db.conn()
+    try:
+        # Clear out unverified OTPs for this phone
+        c.execute("DELETE FROM otps WHERE phone = ? AND verified = 0", (phone_clean,))
+        c.execute(
+            """INSERT INTO otps (phone, otp, expires_at, verified, created_at)
+               VALUES (?, ?, ?, 0, ?)""",
+            (phone_clean, otp_code, expires_at, now_iso),
+        )
+        c.commit()
+    finally:
+        c.close()
+
+    # Dispatch via live carrier gateway
+    delivery_status = sms.send_carrier_sms(phone_clean, otp_code)
+    return delivery_status
+
+
+@app.post("/api/auth/otp/verify")
+def verify_otp(body: VerifyOtpBody):
+    """Verify the 6-digit SMS OTP."""
+    if not body.phone or not body.otp:
+        raise HTTPException(400, "Mobile number and OTP code are required")
+
+    phone_clean = sms.clean_phone(body.phone)
+    otp_clean = body.otp.strip()
+    now_ts = int(time.time())
+
+    c = db.conn()
+    try:
+        row = c.execute(
+            """SELECT id, expires_at, verified FROM otps
+               WHERE phone = ? AND otp = ?
+               ORDER BY id DESC LIMIT 1""",
+            (phone_clean, otp_clean),
+        ).fetchone()
+
+        if not row:
+            raise HTTPException(400, "Invalid OTP code entered. Please check and try again.")
+
+        if row["expires_at"] < now_ts:
+            raise HTTPException(400, "OTP code has expired. Please request a new code.")
+
+        # Mark OTP as successfully verified
+        c.execute("UPDATE otps SET verified = 1 WHERE id = ?", (row["id"],))
+        c.commit()
+
+        return {
+            "ok": True,
+            "verified": True,
+            "phone": phone_clean,
+            "message": "Mobile number verified successfully",
+        }
+    finally:
+        c.close()
+
+
 @app.post("/api/auth/register")
 def register(body: RegisterBody):
     """Register a new patient and create baseline clinical profile."""
     c = db.conn()
     try:
-        phone_clean = body.phone.strip()
+        phone_clean = sms.clean_phone(body.phone)
         existing = c.execute("SELECT id FROM patients WHERE phone = ?", (phone_clean,)).fetchone()
         if existing:
             raise HTTPException(400, "This phone number is already registered")
+
+        # Verify that this mobile number has a recently verified OTP (last 15 mins)
+        now_ts = int(time.time())
+        verified_otp = c.execute(
+            """SELECT id FROM otps
+               WHERE phone = ? AND verified = 1 AND expires_at >= ?
+               ORDER BY id DESC LIMIT 1""",
+            (phone_clean, now_ts - 900),
+        ).fetchone()
+
+        if not verified_otp:
+            raise HTTPException(
+                400,
+                "Mobile number must be verified with OTP before registration."
+            )
 
         today_str = date.today().isoformat()
         c.execute(

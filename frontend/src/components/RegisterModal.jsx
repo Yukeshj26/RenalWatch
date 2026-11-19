@@ -1,5 +1,14 @@
-import React, { useState } from 'react';
-import { UserPlus, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  UserPlus,
+  CheckCircle2,
+  Phone,
+  ShieldCheck,
+  KeyRound,
+  Loader2,
+  AlertCircle,
+  Sparkles,
+} from 'lucide-react';
 
 export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
   const [name, setName] = useState('');
@@ -12,12 +21,106 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
   const [password, setPassword] = useState('');
   const [language, setLanguage] = useState('en');
 
+  // Real Mobile OTP state
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
+  const [otpMessage, setOtpMessage] = useState(null);
+  const [devOtpCode, setDevOtpCode] = useState(null);
+  const [otpError, setOtpError] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Countdown timer for OTP resend
+  useEffect(() => {
+    let interval = null;
+    if (otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [otpTimer]);
+
+  // Request SMS OTP
+  async function handleSendOtp() {
+    const rawDigits = phone.replace(/\D/g, '');
+    if (!phone || rawDigits.length < 10) {
+      setOtpError('Please enter a valid 10-digit mobile number first.');
+      return;
+    }
+
+    setOtpLoading(true);
+    setOtpError(null);
+    setOtpMessage(null);
+    setDevOtpCode(null);
+
+    try {
+      const res = await fetch('/api/auth/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to dispatch OTP');
+
+      setOtpSent(true);
+      setOtpTimer(60);
+      if (data.dev_otp) {
+        setDevOtpCode(data.dev_otp);
+        setOtpMessage('Sandbox Mode: Live carrier API keys not configured. Use code below.');
+      } else {
+        setOtpMessage(data.message || 'SMS OTP sent to your phone! Please enter the 6-digit code.');
+      }
+    } catch (err) {
+      setOtpError(err.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  // Verify entered SMS OTP
+  async function handleVerifyOtp() {
+    if (!otp || otp.trim().length !== 6) {
+      setOtpError('Please enter the complete 6-digit OTP code.');
+      return;
+    }
+
+    setOtpVerifying(true);
+    setOtpError(null);
+
+    try {
+      const res = await fetch('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim(), otp: otp.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'OTP verification failed');
+
+      setOtpVerified(true);
+      setOtpMessage('Mobile number verified successfully!');
+      setDevOtpCode(null);
+    } catch (err) {
+      setOtpError(err.message);
+    } finally {
+      setOtpVerifying(false);
+    }
+  }
+
+  // Submit registration with verified mobile
   async function handleRegister(e) {
     e.preventDefault();
     if (!name || !age || !dryWeight || !phone || !password) return;
+
+    if (!otpVerified) {
+      setOtpError('Please verify your mobile number with the SMS OTP before registering.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -51,9 +154,10 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
 
   return (
     <form onSubmit={handleRegister} className="space-y-4">
-      <div className="p-3 rounded-xl bg-tint-light border border-teal/20 text-xs text-mute">
+      <div className="p-3 rounded-xl bg-tint-light border border-teal/20 text-xs text-mute flex items-start gap-2">
+        <ShieldCheck className="w-4 h-4 text-teal flex-shrink-0 mt-0.5" />
         <p className="font-semibold text-teal-dark">
-          Create your personal RenalWatch profile to start tracking your interdialytic weight, fluid limits, and meals.
+          Patient Registration requires genuine mobile verification. Verified credentials ensure secure health tracking and critical risk alerts.
         </p>
       </div>
 
@@ -61,12 +165,12 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2">
           <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
-            Full Name
+            Full Name *
           </label>
           <input
             type="text"
             value={name}
-            onChange={e => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Ramesh Kumar"
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
             required
@@ -74,14 +178,14 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         </div>
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
-            Age
+            Age *
           </label>
           <input
             type="number"
             min="10"
             max="110"
             value={age}
-            onChange={e => setAge(e.target.value)}
+            onChange={(e) => setAge(e.target.value)}
             placeholder="48"
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
             required
@@ -97,7 +201,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           </label>
           <select
             value={gender}
-            onChange={e => setGender(e.target.value)}
+            onChange={(e) => setGender(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
           >
             <option value="M">Male</option>
@@ -112,7 +216,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           </label>
           <select
             value={dialysisSchedule}
-            onChange={e => setDialysisSchedule(e.target.value)}
+            onChange={(e) => setDialysisSchedule(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
           >
             <option value="Mon,Wed,Fri">Mon, Wed, Fri</option>
@@ -126,7 +230,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
-            Target Dry Weight (kg)
+            Target Dry Weight (kg) *
           </label>
           <input
             type="number"
@@ -134,7 +238,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
             min="30"
             max="150"
             value={dryWeight}
-            onChange={e => setDryWeight(e.target.value)}
+            onChange={(e) => setDryWeight(e.target.value)}
             placeholder="e.g. 64.0"
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
             required
@@ -151,7 +255,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
             max="2500"
             step="50"
             value={fluidLimit}
-            onChange={e => setFluidLimit(e.target.value)}
+            onChange={(e) => setFluidLimit(e.target.value)}
             placeholder="1000"
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
             required
@@ -159,59 +263,191 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         </div>
       </div>
 
-      {/* Phone Number & Password */}
+      {/* Mobile Number & Real OTP Verification */}
+      <div className="p-3 rounded-xl border border-line bg-white shadow-sm space-y-3">
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-bold uppercase tracking-wider text-mute flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-teal" />
+              Mobile Number (SMS OTP Verification) *
+            </label>
+            {otpVerified && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal bg-teal/10 px-2 py-0.5 rounded-full">
+                <CheckCircle2 className="w-3.5 h-3.5 text-teal" />
+                Verified
+              </span>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => {
+                setPhone(e.target.value);
+                if (otpVerified) setOtpVerified(false);
+              }}
+              disabled={otpVerified}
+              placeholder="e.g. 9876543210 or +91 98765 43210"
+              className={`flex-1 px-3 py-2 rounded-lg border text-sm outline-none transition-all ${
+                otpVerified
+                  ? 'bg-teal/5 border-teal text-teal-dark font-medium cursor-not-allowed'
+                  : 'bg-bg border-line focus:border-teal'
+              }`}
+              required
+            />
+
+            {!otpVerified && (
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={otpLoading || otpTimer > 0}
+                className="px-3.5 py-2 rounded-lg bg-teal hover:bg-teal-dark text-white font-semibold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap"
+              >
+                {otpLoading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Sending...
+                  </>
+                ) : otpTimer > 0 ? (
+                  `Resend in ${otpTimer}s`
+                ) : otpSent ? (
+                  'Resend OTP'
+                ) : (
+                  'Send OTP'
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* OTP Input and Verification Row */}
+        {otpSent && !otpVerified && (
+          <div className="pt-2 border-t border-line/60 space-y-2">
+            <label className="block text-xs font-semibold text-mute">
+              Enter 6-digit SMS verification code sent to {phone}:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                placeholder="• • • • • •"
+                className="flex-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-center font-mono tracking-widest text-base font-bold"
+              />
+              <button
+                type="button"
+                onClick={handleVerifyOtp}
+                disabled={otpVerifying || otp.length !== 6}
+                className="px-4 py-2 rounded-lg bg-teal hover:bg-teal-dark text-white font-semibold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+              >
+                {otpVerifying ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Verify OTP
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Sandbox Quick Fill if carrier keys are not configured */}
+            {devOtpCode && (
+              <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-800 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  Dev Sandbox OTP: <strong className="font-mono text-xs">{devOtpCode}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setOtp(devOtpCode)}
+                  className="px-2 py-0.5 rounded bg-amber-200 hover:bg-amber-300 font-semibold text-amber-900 transition-colors"
+                >
+                  Auto-fill
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Status / Alerts */}
+        {otpMessage && (
+          <p className="text-xs text-teal font-medium flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+            {otpMessage}
+          </p>
+        )}
+        {otpError && (
+          <p className="text-xs text-risk-high font-medium flex items-center gap-1">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            {otpError}
+          </p>
+        )}
+      </div>
+
+      {/* Password & Language */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
-            Mobile Number
-          </label>
-          <input
-            type="text"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            placeholder="+91-9876543210"
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
-            Set PIN or Password
+            Portal PIN / Password *
           </label>
           <input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Create PIN or Password"
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Create password"
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
             required
           />
         </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+            Preferred Language
+          </label>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+          >
+            <option value="en">English</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+          </select>
+        </div>
       </div>
 
-      {/* Language */}
-      <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
-          Preferred Language
-        </label>
-        <select
-          value={language}
-          onChange={e => setLanguage(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
-        >
-          <option value="en">English</option>
-          <option value="ta">தமிழ் (Tamil)</option>
-          <option value="hi">हिन्दी (Hindi)</option>
-        </select>
-      </div>
-
+      {/* Submission Button */}
       <button
         type="submit"
-        disabled={loading}
-        className="w-full py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white font-semibold text-sm shadow-sm transition-all disabled:opacity-50 mt-2"
+        disabled={loading || !otpVerified}
+        className={`w-full py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 mt-2 ${
+          otpVerified
+            ? 'bg-teal hover:bg-teal-dark text-white cursor-pointer'
+            : 'bg-line text-mute cursor-not-allowed opacity-75'
+        }`}
       >
-        {loading ? 'Creating Profile...' : 'Complete Registration & Open My Portal'}
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Creating Profile...
+          </>
+        ) : !otpVerified ? (
+          <>
+            <ShieldCheck className="w-4 h-4" />
+            Verify Mobile Number with OTP to Register
+          </>
+        ) : (
+          <>
+            <UserPlus className="w-4 h-4" />
+            Complete Registration & Open My Portal
+          </>
+        )}
       </button>
 
       <div className="text-center pt-2">
@@ -225,8 +461,9 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       </div>
 
       {error && (
-        <div className="p-3 rounded-lg bg-risk-highBg text-risk-high text-xs">
-          {error}
+        <div className="p-3 rounded-lg bg-risk-highBg text-risk-high text-xs flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{error}</span>
         </div>
       )}
     </form>

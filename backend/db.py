@@ -113,6 +113,15 @@ CREATE TABLE IF NOT EXISTS alerts (
     message      TEXT,
     acknowledged INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS otps (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    phone      TEXT    NOT NULL,
+    otp        TEXT    NOT NULL,
+    expires_at INTEGER NOT NULL,
+    verified   INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT    NOT NULL
+);
 """
 
 # ---------------------------------------------------------------------------

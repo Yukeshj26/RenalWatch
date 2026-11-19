@@ -30,6 +30,7 @@ For end-stage renal disease (ESRD) patients undergoing maintenance hemodialysis,
 | Capability | Technical Implementation | Clinical Value |
 | :--- | :--- | :--- |
 | 🛡️ **Role-Based Authentication** | Secure role gateway for **Dialysis Patients** vs **Clinic Management** | Ensures private self-monitoring for patients and cohort-wide triage for nephrology care teams. |
+| 📱 **Real Carrier SMS OTP** | Fast2SMS & Twilio carrier gateways + cryptographic 6-digit OTP verification | Guarantees authentic patient phone verification before clinical profile activation. |
 | 🥗 **Table-Based Food Entry** | Interactive table with food item, quantity, serving unit, and quick presets | Replaces ambiguous text sentences with precise, itemized dietary tracking. |
 | 🍽️ **IFCT Food-to-Nutrient Engine** | Grounded in 98+ staple foods from Indian Food Composition Tables | Accurately calculates Potassium (K), Phosphorus (P), Sodium (Na), and Fluid load. |
 | ⚖️ **Interdialytic Risk Engine** | Blended 70% rule-based scoring + 30% calibrated Logistic Regression ($0.000000$ variance) | Zero-dependency mathematical sigmoid inference ($~15$ MB lambda bundle vs 260 MB scikit-learn). |
@@ -147,10 +148,20 @@ cd RenalWatch
 # Install Python dependencies (lightweight, ~15 MB total)
 pip install -r requirements.txt
 
+# (Optional) Configure Real Carrier SMS Gateway for Live OTPs
+# Indian Numbers: Fast2SMS API key (https://fast2sms.com)
+$env:FAST2SMS_API_KEY="your_fast2sms_api_key_here"
+
+# International / Twilio:
+# $env:TWILIO_ACCOUNT_SID="your_twilio_sid"
+# $env:TWILIO_AUTH_TOKEN="your_twilio_token"
+# $env:TWILIO_PHONE_NUMBER="+1234567890"
+
 # Run the FastAPI server
 python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 *API will be available at [http://localhost:8000](http://localhost:8000), Swagger docs at [http://localhost:8000/docs](http://localhost:8000/docs).*
+> **Note on OTPs:** When carrier keys are configured, real SMS messages are dispatched via Fast2SMS / Twilio. In sandbox / dev mode without keys, RenalWatch logs the OTP and displays a convenient quick-fill button directly in the registration modal for seamless testing.
 
 #### 3. Start the Frontend Client (Terminal 2)
 ```powershell
@@ -183,6 +194,7 @@ RenalWatch/
 │   └── index.py                       # Serverless ASGI entrypoint for Vercel
 ├── backend/
 │   ├── main.py                        # FastAPI routes, auth gateway, and patient state
+│   ├── sms.py                         # Live carrier SMS gateway (Fast2SMS, Twilio, 2Factor)
 │   ├── db.py                          # SQLite connection, WAL mode, schema & seed data
 │   ├── risk.py                        # Deterministic rule engine + Sigmoid ML inference
 │   ├── nutrition.py                   # IFCT meal analyzer and nutrient calculators
