@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
