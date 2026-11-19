@@ -24,6 +24,21 @@ from pydantic import BaseModel, Field
 from backend import db, risk, nutrition, safety, note_analyzer, sms, config, counterfactual
 
 # ---------------------------------------------------------------------------
+# Load local .env configuration if present
+# ---------------------------------------------------------------------------
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+if _ENV_FILE.is_file():
+    try:
+        with open(_ENV_FILE, "r", encoding="utf-8") as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if _line and not _line.startswith("#") and "=" in _line:
+                    _k, _v = _line.split("=", 1)
+                    os.environ.setdefault(_k.strip(), _v.strip().strip("'\""))
+    except Exception:
+        pass
+
+# ---------------------------------------------------------------------------
 # Pydantic request / response models
 # ---------------------------------------------------------------------------
 
