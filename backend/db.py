@@ -9,22 +9,44 @@ Indian dialysis patients with realistic 7-day data for demo purposes.
 from __future__ import annotations
 
 import json
+import os
 import random
+import shutil
 import sqlite3
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Database path – stored alongside the backend package
+# Database path – stored alongside the backend package (or /tmp on Vercel)
 # ---------------------------------------------------------------------------
-_DB_PATH = Path(__file__).resolve().parent.parent / "renalwatch.db"
+_PROJ_DB_PATH = Path(__file__).resolve().parent.parent / "renalwatch.db"
+
+
+def _resolve_db_path() -> Path:
+    """Return writable DB path, copying seeded template DB to /tmp on Vercel/serverless."""
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        tmp_db = Path("/tmp/renalwatch.db")
+        if not tmp_db.exists() and _PROJ_DB_PATH.exists():
+            try:
+                shutil.copy2(str(_PROJ_DB_PATH), str(tmp_db))
+            except Exception:
+                pass
+        return tmp_db if tmp_db.exists() else _PROJ_DB_PATH
+    return _PROJ_DB_PATH
 
 
 def conn() -> sqlite3.Connection:
     """Return a new SQLite connection with Row factory enabled."""
-    c = sqlite3.connect(str(_DB_PATH))
+    db_file = _resolve_db_path()
+    c = sqlite3.connect(str(db_file))
     c.row_factory = sqlite3.Row
-    c.execute("PRAGMA journal_mode=WAL")
+    try:
+        c.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        try:
+            c.execute("PRAGMA journal_mode=DELETE")
+        except sqlite3.OperationalError:
+            pass
     c.execute("PRAGMA foreign_keys=ON")
     return c
 

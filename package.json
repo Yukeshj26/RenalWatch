@@ -1,0 +1,10 @@
+{
+  "name": "renalwatch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RenalWatch – Dialysis Early-Warning Platform",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev"
+  }
+}
