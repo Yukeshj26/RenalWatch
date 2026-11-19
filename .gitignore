@@ -40,3 +40,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# Raw datasets
+kidney_disease.csv
+backend/data/cleaned_uci_ckd.csv

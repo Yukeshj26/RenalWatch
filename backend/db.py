@@ -68,6 +68,10 @@ CREATE TABLE IF NOT EXISTS patients (
     phone           TEXT,
     password        TEXT    NOT NULL DEFAULT '1234',
     language        TEXT    NOT NULL DEFAULT 'en',
+    htn             INTEGER DEFAULT 0,
+    dm              INTEGER DEFAULT 0,
+    hemo            REAL,
+    baseline_pot    REAL,
     synthetic       INTEGER NOT NULL DEFAULT 1
 );
 
@@ -178,12 +182,64 @@ def _is_session_day(d: date, schedule: str) -> bool:
 
 
 def seed(c: sqlite3.Connection) -> None:
-    """Populate the database with 12 synthetic patients + 7 days of data."""
+    """Populate the database with 12 synthetic patients + 7 days of data.
+    
+    Demographic parameters (age, comorbidities, hemoglobin, baseline potassium)
+    are sampled from empirical distributions in backend/data/cohort_params.json
+    (derived from the public UCI CKD dataset) with a fixed random seed (42)
+    for clinical realism and deterministic reproducibility. All clinical records
+    remain 100% synthetic personas with no real patient data.
+    """
     random.seed(42)
     today = date.today()
 
+    # Load empirical cohort parameters (with robust fallback)
+    cohort_params_file = Path(__file__).resolve().parent / "data" / "cohort_params.json"
+    c_dist = {}
+    c_prop = {}
+    if cohort_params_file.is_file():
+        try:
+            with open(cohort_params_file, "r", encoding="utf-8") as f:
+                params_data = json.load(f)
+                c_dist = params_data.get("continuous_distributions", {})
+                c_prop = params_data.get("categorical_proportions", {})
+        except Exception:
+            pass
+
+    # Fallback to empirical UCI adult CKD values if JSON is unavailable
+    age_mean = c_dist.get("age", {}).get("mean", 57.77)
+    age_std  = c_dist.get("age", {}).get("std", 12.79)
+    age_p05  = c_dist.get("age", {}).get("p05", 34.0)
+    age_p95  = c_dist.get("age", {}).get("p95", 75.75)
+
+    htn_rate = c_prop.get("htn", {}).get("positive_rate", 0.6239)
+    dm_rate  = c_prop.get("dm", {}).get("positive_rate", 0.5796)
+
+    hemo_mean = c_dist.get("hemo", {}).get("mean", 10.60)
+    hemo_std  = c_dist.get("hemo", {}).get("std", 2.16)
+    hemo_p05  = c_dist.get("hemo", {}).get("p05", 6.63)
+    hemo_p95  = c_dist.get("hemo", {}).get("p95", 13.97)
+
+    pot_mean = c_dist.get("pot", {}).get("mean", 4.45)
+    pot_std  = c_dist.get("pot", {}).get("std", 0.88)
+    pot_p05  = c_dist.get("pot", {}).get("p05", 3.20)
+    pot_p95  = c_dist.get("pot", {}).get("p95", 6.10)
+
     for idx, pat in enumerate(_PATIENTS):
         profile = dict(_RISK_PROFILES)[idx]
+
+        # Sample clinical parameters empirically from UCI CKD distributions
+        sampled_age = int(round(random.gauss(age_mean, age_std)))
+        sampled_age = max(int(age_p05), min(int(age_p95), sampled_age))
+
+        sampled_htn = 1 if random.random() < htn_rate else 0
+        sampled_dm = 1 if random.random() < dm_rate else 0
+
+        sampled_hemo = round(random.gauss(hemo_mean, hemo_std), 1)
+        sampled_hemo = max(float(hemo_p05), min(float(hemo_p95), sampled_hemo))
+
+        sampled_pot = round(random.gauss(pot_mean, pot_std), 1)
+        sampled_pot = max(float(pot_p05), min(float(pot_p95), sampled_pot))
 
         # --- Insert patient -------------------------------------------------
         # Determine last_session: for high-risk patients, make it 3+ days ago
@@ -201,11 +257,13 @@ def seed(c: sqlite3.Connection) -> None:
         c.execute(
             """INSERT INTO patients
                (name, age, gender, dry_weight, fluid_limit,
-                dialysis_schedule, last_session, phone, language, synthetic)
-               VALUES (?,?,?,?,?,?,?,?,?,1)""",
-            (pat["name"], pat["age"], pat["gender"], pat["dry_weight"],
+                dialysis_schedule, last_session, phone, password, language,
+                htn, dm, hemo, baseline_pot, synthetic)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)""",
+            (pat["name"], sampled_age, pat["gender"], pat["dry_weight"],
              pat["fluid_limit"], schedule, last_sess.isoformat(),
-             pat["phone"], pat["lang"]),
+             pat["phone"], "1234", pat["lang"],
+             sampled_htn, sampled_dm, sampled_hemo, sampled_pot),
         )
         pid = c.execute("SELECT last_insert_rowid()").fetchone()[0]
 
@@ -347,12 +405,19 @@ def init() -> None:
     c = conn()
     try:
         c.executescript(_SCHEMA)
-        # Migrate password column if missing in an existing database
-        try:
-            c.execute("ALTER TABLE patients ADD COLUMN password TEXT DEFAULT '1234'")
-            c.commit()
-        except sqlite3.OperationalError:
-            pass  # Already exists
+        # Migrate optional columns if missing in an existing database
+        for col_stmt in [
+            "ALTER TABLE patients ADD COLUMN password TEXT DEFAULT '1234'",
+            "ALTER TABLE patients ADD COLUMN htn INTEGER DEFAULT 0",
+            "ALTER TABLE patients ADD COLUMN dm INTEGER DEFAULT 0",
+            "ALTER TABLE patients ADD COLUMN hemo REAL",
+            "ALTER TABLE patients ADD COLUMN baseline_pot REAL",
+        ]:
+            try:
+                c.execute(col_stmt)
+                c.commit()
+            except sqlite3.OperationalError:
+                pass  # Already exists
         # Only seed if no patients exist yet
         count = c.execute("SELECT COUNT(*) FROM patients").fetchone()[0]
         if count == 0:

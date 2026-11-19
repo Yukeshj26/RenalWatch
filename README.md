@@ -201,7 +201,16 @@ RenalWatch/
 │   ├── note_analyzer.py               # Multilingual clinical NLP symptom extraction
 │   ├── safety.py                      # Deterministic clinical emergency firewall
 │   └── data/
-│       └── foods.json                 # IFCT-verified Indian staple foods database
+│       ├── foods.json                 # IFCT-verified Indian staple foods database
+│       ├── cohort_params.json         # Empirical distributions from UCI CKD dataset
+│       └── cleaned_uci_ckd.csv        # Cleaned adult CKD cohort (N=226)
+├── scripts/
+│   ├── clean_uci_ckd.py               # Dataset cleaning, typo fix, and physiological outlier filtering
+│   ├── extract_cohort_params.py       # Empirical distribution and proportion extraction
+│   └── build_sanity_check_notebook.py # Jupyter notebook compilation and rendering pipeline
+├── notebooks/
+│   ├── uci_sanity_check.ipynb         # Descriptive threshold sanity check & histogram analysis
+│   └── uci_distributions.png          # 4-panel distribution charts (pot, hemo, sc, bp)
 └── frontend/
     ├── package.json                   # React 18, Vite, Tailwind CSS dependencies
     ├── vite.config.js                 # Dev server configuration with /api proxy
@@ -218,11 +227,35 @@ RenalWatch/
             ├── LogHealthModal.jsx     # Daily health logging modal with multilingual speech capture
             ├── PatientDetailModal.jsx # Clinician patient chart deep dive with collapsible meals
             ├── LoginModal.jsx         # Credential sign-in modal
-            ├── RegisterModal.jsx      # New dialysis patient registration modal
+            ├── RegisterModal.jsx      # New dialysis patient registration modal (Real SMS OTP)
             ├── SafetyModal.jsx        # Clinical emergency protocols (EN / TA / HI)
             ├── AboutModal.jsx         # Architectural pillar overview
             └── CursorTrail.jsx        # Subtle fluid particle canvas effect
 ```
+
+---
+
+## 📊 Data Sources & Limitations
+
+### 1. Synthetic Seed Cohort Grounding
+To ensure clinical plausibility, baseline demographic and laboratory parameters for RenalWatch's synthetic demo patients (age, comorbidity history of hypertension and diabetes, hemoglobin, and baseline serum potassium) are empirically parameterized from the public **UCI Chronic Kidney Disease** dataset.
+
+- **Attribution & Dataset Citation:**
+  > Rubini, L., Soundarapandian, P., & Eswaran, P. (2015). *Chronic Kidney Disease* [Dataset]. UCI Machine Learning Repository. [https://doi.org/10.24432/C5G020](https://doi.org/10.24432/C5G020).
+- **License:** Creative Commons Attribution 4.0 International ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)).
+- **Cleaning & Extraction Pipelines:**
+  - [`scripts/clean_uci_ckd.py`](file:///e:/renalwatch/scripts/clean_uci_ckd.py): Strips string formatting artifacts, handles typos (e.g., `ckd\t`), converts missing markers (`?`) to NaN, filters for adult CKD patients (age $\ge 18$, $N=226$), and screens physiological entry errors (`pot` $\in [2.0, 8.0]$, `sod` $\in [110, 160]$, `bp` $\in [40, 200]$).
+  - [`scripts/extract_cohort_params.py`](file:///e:/renalwatch/scripts/extract_cohort_params.py): Computes summary percentiles ($5^{\text{th}}, 25^{\text{th}}, 50^{\text{th}}, 75^{\text{th}}, 95^{\text{th}}$) and categorical comorbidity prevalences, persisted to [`backend/data/cohort_params.json`](file:///e:/renalwatch/backend/data/cohort_params.json).
+  - [`notebooks/uci_sanity_check.ipynb`](file:///e:/renalwatch/notebooks/uci_sanity_check.ipynb): A descriptive sanity check comparing physiological thresholds against empirical distributions.
+
+### 2. Critical Methodological Distinctions & Non-Training Mandate
+- **Pre-Dialysis CKD vs. Maintenance Hemodialysis:** The UCI dataset captures patients across stages 1–5 of Chronic Kidney Disease. It does **not** represent an end-stage renal disease (ESRD) maintenance hemodialysis population.
+- **Absence of Interdialytic Dynamic Outcomes:** The UCI dataset contains no records for target dry weight, interdialytic weight gain (IDWG%), scheduled dialysis sessions, dietary meal intake, or interdialytic emergency outcomes (pulmonary edema, hyperkalemic arrhythmias). All such dynamic variables in RenalWatch remain **strictly synthetic**.
+- **Diastolic Blood Pressure Only:** Blood pressure (`bp`) in the UCI dataset reflects **diastolic BP only**; systolic BP was not recorded.
+- **Strict Non-Training Mandate:** The RenalWatch risk model was **NOT** trained on this dataset. The logistic regression parameters and deterministic 70/30 blended scoring engine are not fitted to patient records, and this analysis is purely a descriptive sanity check.
+- **Future Validation:** Formal prospective clinical validation in an active dialysis cohort with institutional ethics approval (Institutional Review Board / Ethics Committee) is required prior to clinical deployment and represents planned future work.
+
+---
 
 ---
 
