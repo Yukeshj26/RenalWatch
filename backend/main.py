@@ -455,21 +455,6 @@ def register(body: RegisterBody):
             if existing_email:
                 raise HTTPException(400, "This email address is already registered")
 
-        # Verify that this contact (phone or email) has a recently verified OTP (last 15 mins)
-        now_ts = int(time.time())
-        verified_otp = c.execute(
-            """SELECT id FROM otps
-               WHERE (phone = ? OR phone = ?) AND verified = 1 AND expires_at >= ?
-               ORDER BY id DESC LIMIT 1""",
-            (phone_clean, email_clean, now_ts - 900),
-        ).fetchone()
-
-        if not verified_otp:
-            raise HTTPException(
-                400,
-                "Mobile number or email must be verified with OTP before registration."
-            )
-
         today_str = date.today().isoformat()
         now_iso = datetime.now().isoformat()
         c.execute(
