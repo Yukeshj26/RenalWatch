@@ -129,10 +129,12 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
               <Phone size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
                 type="text"
+                inputMode="tel"
+                autoComplete="tel"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="Enter registered mobile number or name"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                className="w-full pl-10 pr-3.5 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                 required
               />
             </div>
@@ -148,10 +150,11 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
               <Lock size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
                 type="password"
+                autoComplete="current-password"
                 value={patientPassword}
                 onChange={e => setPatientPassword(e.target.value)}
                 placeholder="Enter PIN / Password"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                className="w-full pl-10 pr-3.5 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                 required
               />
             </div>
@@ -195,10 +198,11 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
               <Mail size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
                 type="text"
+                autoComplete="username"
                 value={staffId}
                 onChange={e => setStaffId(e.target.value)}
                 placeholder="Enter staff ID or official email"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                className="w-full pl-10 pr-3.5 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                 required
               />
             </div>
@@ -214,10 +218,11 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
               <Lock size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
                 type="password"
+                autoComplete="current-password"
                 value={clinicPasscode}
                 onChange={e => setClinicPasscode(e.target.value)}
                 placeholder="Enter Passcode"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                className="w-full pl-10 pr-3.5 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                 required
               />
             </div>

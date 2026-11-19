@@ -205,6 +205,31 @@ export default function PersonalizedPatientPortal({
         </div>
       </div>
 
+      {/* Mobile-First Fast Action Bar */}
+      <div className="grid grid-cols-2 gap-3 sm:hidden">
+        <button
+          onClick={onOpenLogModal}
+          className="p-3.5 rounded-2xl bg-teal text-white shadow-md active:scale-95 transition-all flex flex-col items-center justify-center text-center gap-1.5 touch-manipulation"
+        >
+          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+            <Activity size={20} />
+          </div>
+          <span className="font-bold text-xs">Log Weight &amp; BP</span>
+          <span className="text-[10px] text-white/80">Daily 1-Min Check-in</span>
+        </button>
+
+        <button
+          onClick={onOpenFoodModal}
+          className="p-3.5 rounded-2xl bg-white border border-teal/30 text-teal-dark shadow-xs active:scale-95 transition-all flex flex-col items-center justify-center text-center gap-1.5 touch-manipulation"
+        >
+          <div className="w-9 h-9 rounded-full bg-tint flex items-center justify-center text-teal">
+            <Utensils size={20} />
+          </div>
+          <span className="font-bold text-xs">Check Food</span>
+          <span className="text-[10px] text-mute">Nutrient Calculator</span>
+        </button>
+      </div>
+
       {/* Main Grid: Risk Overview & Today's Nutrient Gauges */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Personal Risk & Advice */}
@@ -228,7 +253,7 @@ export default function PersonalizedPatientPortal({
               </span>
             </div>
 
-            {/* Health Condition & Measured Quantities Table */}
+            {/* Health Condition & Measured Quantities (Mobile-First Adaptive Display) */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-mute uppercase tracking-wider block">
@@ -236,7 +261,85 @@ export default function PersonalizedPatientPortal({
                 </span>
                 <span className="text-[10px] text-mute font-medium">Daily Clinical Log</span>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
+
+              {/* Mobile Cards View (< sm) */}
+              <div className="space-y-2 sm:hidden">
+                {/* Weight / IDWG */}
+                <div className="p-3 rounded-xl border border-line bg-white shadow-2xs space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-ink">Weight Gain (IDWG)</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                        r.idwg_pct >= 4
+                          ? 'bg-risk-highBg text-risk-high'
+                          : r.idwg_pct >= 2
+                          ? 'bg-risk-medBg text-risk-med'
+                          : 'bg-risk-lowBg text-risk-low'
+                      }`}
+                    >
+                      {r.idwg_pct >= 4
+                        ? `+${(p.current_weight - p.dry_weight).toFixed(1)}kg Overload`
+                        : r.idwg_pct >= 2
+                        ? 'Moderate'
+                        : 'Within Target'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-baseline text-xs">
+                    <span className="text-base font-bold text-ink">{p.current_weight} kg <span className="text-xs font-semibold text-teal-dark">({r.idwg_pct >= 0 ? '+' : ''}{r.idwg_pct}%)</span></span>
+                    <span className="text-[11px] text-mute">Target: {p.dry_weight} kg (&lt; 4%)</span>
+                  </div>
+                </div>
+
+                {/* Blood Pressure */}
+                <div className="p-3 rounded-xl border border-line bg-white shadow-2xs space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-ink">Blood Pressure</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                        (p.bp_sys || 120) >= 160
+                          ? 'bg-risk-highBg text-risk-high'
+                          : (p.bp_sys || 120) >= 140
+                          ? 'bg-risk-medBg text-risk-med'
+                          : 'bg-risk-lowBg text-risk-low'
+                      }`}
+                    >
+                      {(p.bp_sys || 120) >= 160
+                        ? 'Stage 2 High'
+                        : (p.bp_sys || 120) >= 140
+                        ? 'Stage 1 High'
+                        : 'Controlled'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-baseline text-xs">
+                    <span className="text-base font-bold text-ink">{p.bp_sys || 120} / {p.bp_dia || 80} <span className="text-xs font-normal text-mute">mmHg</span></span>
+                    <span className="text-[11px] text-mute">Target: &lt; 140/90</span>
+                  </div>
+                </div>
+
+                {/* Fluid & Potassium row */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-xl border border-line bg-white shadow-2xs space-y-1">
+                    <span className="text-[10px] font-bold text-mute uppercase tracking-wider block">Fluid Intake</span>
+                    <span className="text-base font-bold text-ink block">{nutrients.fluid} mL</span>
+                    <span className="text-[10px] text-mute block">Limit: {p.fluid_limit} mL</span>
+                  </div>
+
+                  <div className="p-3 rounded-xl border border-line bg-white shadow-2xs space-y-1">
+                    <span className="text-[10px] font-bold text-mute uppercase tracking-wider block">Potassium</span>
+                    <span className="text-base font-bold text-ink block">{nutrients.k} mg</span>
+                    <span className="text-[10px] text-mute block">Limit: 2000 mg</span>
+                  </div>
+                </div>
+
+                {/* Days Since Dialysis */}
+                <div className="p-2.5 rounded-xl border border-line bg-white flex items-center justify-between text-xs">
+                  <span className="text-mute font-medium">Days Since Dialysis:</span>
+                  <span className="font-bold text-ink">{dashboard.days_since_session ?? p.days_since_session} days</span>
+                </div>
+              </div>
+
+              {/* Desktop Table View (>= sm) */}
+              <div className="hidden sm:block overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead className="bg-tint/70 text-mute font-bold uppercase tracking-wider border-b border-line text-[10px]">
                     <tr>
@@ -558,50 +661,88 @@ export default function PersonalizedPatientPortal({
             {showFoodLog && (
               <div className="pt-2 animate-fadeSlideUp">
                 {mealItems && mealItems.length > 0 ? (
-                  <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead className="bg-gradient-to-r from-tint-light to-tint/60 text-teal-dark font-bold uppercase tracking-wider border-b border-line text-[10px]">
-                        <tr>
-                          <th className="py-2.5 px-3">Food Item</th>
-                          <th className="py-2.5 px-3">Quantity &amp; Serving</th>
-                          <th className="py-2.5 px-3 text-right">Potassium (K)</th>
-                          <th className="py-2.5 px-3 text-right">Fluid</th>
-                          <th className="py-2.5 px-3 text-right">Phosphorus (P)</th>
-                          <th className="py-2.5 px-3 text-right">Sodium (Na)</th>
-                          <th className="py-2.5 px-3 text-right">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line text-[11px]">
-                        {mealItems.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-tint-light/40 transition-colors">
-                            <td className="py-2.5 px-3 font-semibold text-ink capitalize">
-                              {item.food}
-                            </td>
-                            <td className="py-2.5 px-3">
-                              <span className="inline-block px-2.5 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[11px] border border-teal/20">
-                                {item.qty}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-3 text-right text-ink font-semibold">
-                              {item.k} mg
-                            </td>
-                            <td className="py-2.5 px-3 text-right text-teal-dark font-semibold">
-                              {item.fluid} mL
-                            </td>
-                            <td className="py-2.5 px-3 text-right text-mute">
-                              {item.p} mg
-                            </td>
-                            <td className="py-2.5 px-3 text-right text-mute">
-                              {item.na} mg
-                            </td>
-                            <td className="py-2.5 px-3 text-right text-mute font-medium">
-                              {item.day}
-                            </td>
+                  <>
+                    {/* Mobile Food Cards (< sm) */}
+                    <div className="space-y-2.5 sm:hidden">
+                      {mealItems.map((item, idx) => (
+                        <div key={idx} className="p-3 rounded-xl border border-line bg-white shadow-2xs space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <span className="font-bold text-ink text-xs capitalize block">{item.food}</span>
+                              <span className="text-[10px] text-mute">{item.day}</span>
+                            </div>
+                            <span className="inline-block px-2.5 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[11px] border border-teal/20">
+                              {item.qty}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-1 text-center bg-tint-light/60 p-2 rounded-lg border border-teal/10 text-[10px]">
+                            <div>
+                              <span className="text-mute block text-[9px] uppercase font-bold">K</span>
+                              <span className="font-bold text-ink">{item.k} mg</span>
+                            </div>
+                            <div>
+                              <span className="text-mute block text-[9px] uppercase font-bold">Fluid</span>
+                              <span className="font-bold text-teal-dark">{item.fluid} mL</span>
+                            </div>
+                            <div>
+                              <span className="text-mute block text-[9px] uppercase font-bold">P</span>
+                              <span className="font-semibold text-mute">{item.p} mg</span>
+                            </div>
+                            <div>
+                              <span className="text-mute block text-[9px] uppercase font-bold">Na</span>
+                              <span className="font-semibold text-mute">{item.na} mg</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Tablet & Desktop Wide Table (>= sm) */}
+                    <div className="hidden sm:block overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead className="bg-gradient-to-r from-tint-light to-tint/60 text-teal-dark font-bold uppercase tracking-wider border-b border-line text-[10px]">
+                          <tr>
+                            <th className="py-2.5 px-3">Food Item</th>
+                            <th className="py-2.5 px-3">Quantity &amp; Serving</th>
+                            <th className="py-2.5 px-3 text-right">Potassium (K)</th>
+                            <th className="py-2.5 px-3 text-right">Fluid</th>
+                            <th className="py-2.5 px-3 text-right">Phosphorus (P)</th>
+                            <th className="py-2.5 px-3 text-right">Sodium (Na)</th>
+                            <th className="py-2.5 px-3 text-right">Date</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody className="divide-y divide-line text-[11px]">
+                          {mealItems.map((item, idx) => (
+                            <tr key={idx} className="hover:bg-tint-light/40 transition-colors">
+                              <td className="py-2.5 px-3 font-semibold text-ink capitalize">
+                                {item.food}
+                              </td>
+                              <td className="py-2.5 px-3">
+                                <span className="inline-block px-2.5 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[11px] border border-teal/20">
+                                  {item.qty}
+                                </span>
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-ink font-semibold">
+                                {item.k} mg
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-teal-dark font-semibold">
+                                {item.fluid} mL
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-mute">
+                                {item.p} mg
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-mute">
+                                {item.na} mg
+                              </td>
+                              <td className="py-2.5 px-3 text-right text-mute font-medium">
+                                {item.day}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
                 ) : (
                   <p className="text-xs text-mute py-4 text-center">
                     No meals recorded today. Tap "Check &amp; Log Meal" to add what you ate.

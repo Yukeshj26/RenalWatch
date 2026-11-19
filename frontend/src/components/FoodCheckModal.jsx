@@ -236,8 +236,85 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
           </button>
         </div>
 
-        {/* The Table Input Grid */}
-        <div className="overflow-x-auto rounded-2xl border-2 border-line bg-white shadow-xs">
+        {/* Mobile Food Cards (< sm) */}
+        <div className="space-y-3 sm:hidden">
+          {foodRows.map((row, idx) => (
+            <div key={idx} className="p-3.5 rounded-2xl border-2 border-line bg-white shadow-2xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-teal-dark bg-tint px-2.5 py-0.5 rounded-md">
+                  Item #{idx + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveRow(idx)}
+                  disabled={foodRows.length === 1 && !row.food}
+                  className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-mute hover:text-risk-high hover:bg-risk-highBg transition-all disabled:opacity-30 touch-manipulation"
+                  title="Remove item"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-mute mb-1">
+                  Food Item / Dish
+                </label>
+                <input
+                  type="text"
+                  list="food-suggestions"
+                  value={row.food}
+                  onChange={e => handleFoodChange(idx, 'food', e.target.value)}
+                  placeholder="e.g. Sambar, Idli, Chapati..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal focus:bg-white outline-none text-base sm:text-sm font-medium"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-mute mb-1">
+                    Quantity
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="0.1"
+                    inputMode="decimal"
+                    value={row.qty}
+                    onChange={e => handleFoodChange(idx, 'qty', e.target.value)}
+                    placeholder="1"
+                    className="w-full px-3 py-2.5 rounded-xl border border-line bg-bg focus:border-teal focus:bg-white outline-none text-base sm:text-sm font-bold text-teal-dark text-center"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-mute mb-1">
+                    Serving Unit
+                  </label>
+                  <select
+                    value={row.unit}
+                    onChange={e => handleFoodChange(idx, 'unit', e.target.value)}
+                    className="w-full px-2.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal focus:bg-white outline-none text-xs font-semibold h-[44px]"
+                  >
+                    <option value="bowl">bowl (200-250g)</option>
+                    <option value="cup">cup (150-200g)</option>
+                    <option value="piece">piece / item</option>
+                    <option value="glass">glass (200-250mL)</option>
+                    <option value="plate">plate / portion</option>
+                    <option value="g">grams (g)</option>
+                    <option value="mL">milliliters (mL)</option>
+                    <option value="tbsp">tablespoon (tbsp)</option>
+                    <option value="serving">serving</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* The Table Input Grid (Tablet & Desktop >= sm) */}
+        <div className="hidden sm:block overflow-x-auto rounded-2xl border-2 border-line bg-white shadow-xs">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-gradient-to-r from-tint-light to-tint/60 text-teal-dark font-bold uppercase tracking-wider border-b border-line text-[10px]">
               <tr>

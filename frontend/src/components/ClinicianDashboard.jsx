@@ -73,8 +73,85 @@ export default function ClinicianDashboard({ patients, onSelectPatient }) {
         </div>
       </div>
 
-      {/* Main Table */}
-      <div className="bg-white rounded-2xl shadow-md border border-line overflow-hidden">
+      {/* Mobile Card List (Mobile-First View) */}
+      <div className="space-y-3 md:hidden">
+        {filteredPatients.length > 0 ? (
+          filteredPatients.map(p => {
+            const daysSinceText =
+              p.days_since_session === 0
+                ? 'Today'
+                : p.days_since_session === 1
+                ? '1 day ago'
+                : `${p.days_since_session} days ago`;
+
+            return (
+              <div
+                key={p.id}
+                onClick={() => onSelectPatient(p.id)}
+                className="p-4 rounded-2xl bg-white border border-line shadow-xs active:scale-[0.99] transition-all cursor-pointer space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-heading font-bold text-base text-ink">
+                      {p.name}
+                    </h3>
+                    <span className="text-xs text-mute">
+                      Age {p.age} {p.gender ? `· ${p.gender}` : ''}
+                    </span>
+                  </div>
+
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap ${
+                      p.level === 'high'
+                        ? 'bg-risk-highBg text-risk-high animate-pulseRisk'
+                        : p.level === 'medium'
+                        ? 'bg-risk-medBg text-risk-med'
+                        : 'bg-risk-lowBg text-risk-low'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    {p.level.toUpperCase()} · {p.score}
+                  </span>
+                </div>
+
+                {/* Primary Triage Reason Factors */}
+                {p.factors && p.factors.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {p.factors.map((f, fIdx) => (
+                      <span
+                        key={fIdx}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-bg border border-line text-ink"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
+                        <span>{f.reason}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-mute font-medium">All clinical metrics within safe baseline</p>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-line/60 text-xs text-mute">
+                  <span className="flex items-center gap-1">
+                    <Calendar size={13} className="text-teal" />
+                    Last dialysis: <b className={p.days_since_session >= 3 ? 'text-risk-high' : 'text-teal-dark'}>{daysSinceText}</b>
+                  </span>
+                  <span className="text-teal font-bold flex items-center gap-1 text-[11px]">
+                    Open Chart &rarr;
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="p-8 text-center bg-white rounded-2xl border border-line text-mute text-sm">
+            No patients match the selected filter.
+          </div>
+        )}
+      </div>
+
+      {/* Main Table (Tablet & Desktop View) */}
+      <div className="hidden md:block bg-white rounded-2xl shadow-md border border-line overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

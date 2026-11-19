@@ -190,7 +190,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Ramesh Kumar"
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
             required
           />
         </div>
@@ -202,10 +202,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
             type="number"
             min="10"
             max="110"
+            inputMode="numeric"
             value={age}
             onChange={(e) => setAge(e.target.value)}
             placeholder="48"
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-semibold"
             required
           />
         </div>
@@ -220,7 +221,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           <select
             value={gender}
             onChange={(e) => setGender(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm"
           >
             <option value="M">Male</option>
             <option value="F">Female</option>
@@ -235,7 +236,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           <select
             value={dialysisSchedule}
             onChange={(e) => setDialysisSchedule(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm"
           >
             <option value="Mon,Wed,Fri">Mon, Wed, Fri</option>
             <option value="Tue,Thu,Sat">Tue, Thu, Sat</option>
@@ -255,10 +256,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
             step="0.1"
             min="30"
             max="150"
+            inputMode="decimal"
             value={dryWeight}
             onChange={(e) => setDryWeight(e.target.value)}
             placeholder="e.g. 64.0"
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-bold text-teal-dark"
             required
           />
         </div>
@@ -272,17 +274,18 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
             min="400"
             max="2500"
             step="50"
+            inputMode="numeric"
             value={fluidLimit}
             onChange={(e) => setFluidLimit(e.target.value)}
             placeholder="1000"
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-semibold"
             required
           />
         </div>
       </div>
 
       {/* Mobile Number & Real OTP Verification */}
-      <div className="p-3 rounded-xl border border-line bg-white shadow-sm space-y-3">
+      <div className="p-3.5 rounded-2xl border border-line bg-white shadow-xs space-y-3">
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-xs font-bold uppercase tracking-wider text-mute flex items-center gap-1.5">
@@ -300,14 +303,16 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           <div className="flex gap-2">
             <input
               type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               value={phone}
               onChange={(e) => {
                 setPhone(e.target.value);
                 if (otpVerified) setOtpVerified(false);
               }}
               disabled={otpVerified}
-              placeholder="e.g. 9876543210 or +91 98765 43210"
-              className={`flex-1 px-3 py-2 rounded-lg border text-sm outline-none transition-all ${
+              placeholder="e.g. 9876543210"
+              className={`flex-1 px-3 py-2.5 sm:py-2 rounded-xl border text-base sm:text-sm outline-none transition-all ${
                 otpVerified
                   ? 'bg-teal/5 border-teal text-teal-dark font-medium cursor-not-allowed'
                   : 'bg-bg border-line focus:border-teal'
@@ -349,16 +354,18 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
               <input
                 type="text"
                 maxLength={6}
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                 placeholder="• • • • • •"
-                className="flex-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-center font-mono tracking-widest text-base font-bold"
+                className="flex-1 px-3 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-center font-mono tracking-widest text-lg font-bold"
               />
               <button
                 type="button"
                 onClick={handleVerifyOtp}
                 disabled={otpVerifying || otp.length !== 6}
-                className="px-4 py-2 rounded-lg bg-teal hover:bg-teal-dark text-white font-semibold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+                className="px-4 py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white font-semibold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5 whitespace-nowrap shadow-sm touch-manipulation active:scale-95"
               >
                 {otpVerifying ? (
                   <>
@@ -416,10 +423,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           </label>
           <input
             type="password"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Create password"
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
             required
           />
         </div>
@@ -431,7 +439,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+            className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
           >
             <option value="en">English</option>
             <option value="ta">தமிழ் (Tamil)</option>

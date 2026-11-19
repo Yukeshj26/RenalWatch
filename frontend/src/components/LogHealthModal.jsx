@@ -250,10 +250,11 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
               step="0.1"
               min="30"
               max="160"
+              inputMode="decimal"
               value={weight}
               onChange={e => setWeight(e.target.value)}
               placeholder="e.g. 68.5"
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+              className="w-full mt-1 px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-bold text-teal-dark"
               required
             />
           </div>
@@ -263,10 +264,11 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
               type="number"
               min="70"
               max="240"
+              inputMode="numeric"
               value={bpSys}
               onChange={e => setBpSys(e.target.value)}
               placeholder="e.g. 120"
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+              className="w-full mt-1 px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-semibold"
               required
             />
           </div>
@@ -276,10 +278,11 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
               type="number"
               min="40"
               max="140"
+              inputMode="numeric"
               value={bpDia}
               onChange={e => setBpDia(e.target.value)}
               placeholder="e.g. 80"
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+              className="w-full mt-1 px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-semibold"
               required
             />
           </div>
@@ -289,10 +292,11 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
               type="number"
               min="40"
               max="200"
+              inputMode="numeric"
               value={heartRate}
               onChange={e => setHeartRate(e.target.value)}
               placeholder="e.g. 72"
-              className="w-full mt-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
+              className="w-full mt-1 px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-semibold"
             />
           </div>
         </div>

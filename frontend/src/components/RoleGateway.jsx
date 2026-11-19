@@ -200,10 +200,12 @@ export default function RoleGateway({
                     <Phone size={16} className="absolute left-3.5 top-3.5 text-mute" />
                     <input
                       type="text"
+                      inputMode="tel"
+                      autoComplete="tel"
                       value={patientPhone}
                       onChange={e => setPatientPhone(e.target.value)}
                       placeholder="Enter registered mobile number or name"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      className="w-full pl-10 pr-4 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                       required
                     />
                   </div>
@@ -219,10 +221,11 @@ export default function RoleGateway({
                     <Lock size={16} className="absolute left-3.5 top-3.5 text-mute" />
                     <input
                       type="password"
+                      autoComplete="current-password"
                       value={patientPassword}
                       onChange={e => setPatientPassword(e.target.value)}
                       placeholder="Enter PIN / Password"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      className="w-full pl-10 pr-4 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                       required
                     />
                   </div>
@@ -284,10 +287,12 @@ export default function RoleGateway({
                     <Mail size={16} className="absolute left-3.5 top-3.5 text-mute" />
                     <input
                       type="text"
+                      autoCapitalize="none"
+                      autoComplete="username"
                       value={clinicStaffId}
                       onChange={e => setClinicStaffId(e.target.value)}
                       placeholder="Enter staff ID or official email"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      className="w-full pl-10 pr-4 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                       required
                     />
                   </div>
@@ -303,10 +308,11 @@ export default function RoleGateway({
                     <Lock size={16} className="absolute left-3.5 top-3.5 text-mute" />
                     <input
                       type="password"
+                      autoComplete="current-password"
                       value={clinicPasscode}
                       onChange={e => setClinicPasscode(e.target.value)}
                       placeholder="Enter Passcode"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      className="w-full pl-10 pr-4 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                       required
                     />
                   </div>

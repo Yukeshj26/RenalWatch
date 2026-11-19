@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar.jsx';
+import MobileBottomNav from './components/MobileBottomNav.jsx';
 import RoleGateway from './components/RoleGateway.jsx';
 import ClinicianDashboard from './components/ClinicianDashboard.jsx';
 import PersonalizedPatientPortal from './components/PersonalizedPatientPortal.jsx';
@@ -97,7 +98,7 @@ export default function App() {
       />
 
       {/* Main Content Area - Mutually Exclusive Views */}
-      <main className="flex-1">
+      <main className="flex-1 pb-20 sm:pb-8">
         {currentUser?.role === 'patient' ? (
           /* Personalized Patient Portal - Patient's own health view exclusively */
           <PersonalizedPatientPortal
@@ -151,12 +152,19 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 px-4 border-t border-line bg-white text-center text-xs text-mute space-y-1">
+      <footer className="py-8 px-4 pb-24 sm:pb-8 border-t border-line bg-white text-center text-xs text-mute space-y-1">
         <p className="font-medium text-ink/80">
           RenalWatch &mdash; Dialysis Early-Warning Companion (React + Tailwind Edition)
         </p>
         <p>Proof of concept using synthetic data. Not a medical device.</p>
       </footer>
+
+      {/* Mobile-First Thumb Zone Bottom Navigation Bar */}
+      <MobileBottomNav
+        currentUser={currentUser}
+        onOpenModal={handleOpenModal}
+        onLogout={handleLogout}
+      />
 
       {/* Modals */}
       <Modal

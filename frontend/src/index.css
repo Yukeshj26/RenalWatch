@@ -5,6 +5,10 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    touch-action: manipulation;
   }
   h1, h2, h3, h4 {
     font-family: 'Bricolage Grotesque', system-ui, sans-serif;
@@ -36,6 +40,27 @@
 @keyframes bob {
   0%, 100% { transform: rotate(-45deg) translateY(0); }
   50% { transform: rotate(-45deg) translateY(-3px); }
+}
+
+/* Mobile Bottom Sheet Animation */
+@keyframes slideUpSheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideUpSheet {
+  animation: slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Mobile safe area helper */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
 @media (prefers-reduced-motion: reduce) {
