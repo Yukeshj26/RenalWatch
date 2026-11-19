@@ -1,9 +1,35 @@
 import React, { useState } from 'react';
-import { Mic, MicOff, Utensils, AlertTriangle, ShieldAlert, CheckCircle2, Sparkles, Plus, Minus } from 'lucide-react';
+import {
+  Mic,
+  MicOff,
+  Utensils,
+  AlertTriangle,
+  ShieldAlert,
+  CheckCircle2,
+  Sparkles,
+  Plus,
+  Minus,
+  Trash2,
+} from 'lucide-react';
+
+const SUGGESTED_FOODS = [
+  'Sambar', 'Idli', 'Chapati', 'Rice', 'Dal', 'Dosa', 'Banana', 'Coconut water',
+  'Tea', 'Coffee', 'Curd', 'Buttermilk', 'Curd rice', 'Pongal', 'Upma', 'Puri',
+  'Egg', 'Egg white', 'Chicken curry', 'Fish curry', 'Mutton curry', 'Biryani',
+  'Paneer', 'Apple', 'Orange', 'Mango', 'Papaya', 'Watermelon', 'Grapes',
+  'Potato curry', 'Tomato', 'Cabbage', 'Cauliflower', 'Spinach', 'Okra',
+  'Almonds', 'Cashews', 'Peanuts', 'Chickpeas', 'Rajma', 'Biscuits', 'Bread'
+];
 
 export default function FoodCheckModal({ patients, selectedPatientId, currentPatient, onMealLogged }) {
   const [pid, setPid] = useState(currentPatient?.id || selectedPatientId || (patients[0] ? patients[0].id : ''));
-  const [mealText, setMealText] = useState('');
+  
+  // Table rows for adding food items with quantity
+  const [foodRows, setFoodRows] = useState([
+    { food: '', qty: '1', unit: 'bowl' },
+    { food: '', qty: '2', unit: 'piece' },
+  ]);
+
   const [voiceLang, setVoiceLang] = useState('en-IN');
   const [isListening, setIsListening] = useState(false);
 
@@ -13,12 +39,36 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
   const [total, setTotal] = useState({ k: 0, p: 0, na: 0, fluid: 0 });
   const [error, setError] = useState(null);
 
+  // Table row editing handlers
+  function handleFoodChange(index, field, value) {
+    setFoodRows(prev => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
+  }
+
+  function handleAddRow(presetFood = '', presetQty = '1', presetUnit = 'bowl') {
+    setFoodRows(prev => [
+      ...prev,
+      { food: presetFood, qty: presetQty, unit: presetUnit },
+    ]);
+  }
+
+  function handleRemoveRow(index) {
+    if (foodRows.length <= 1) {
+      setFoodRows([{ food: '', qty: '1', unit: 'bowl' }]);
+      return;
+    }
+    setFoodRows(prev => prev.filter((_, i) => i !== index));
+  }
+
   function startVoice() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert('Speech recognition is not supported in this browser. Please type your meal description.');
+      alert('Speech recognition is not supported in this browser. Please enter food and quantity directly in the table.');
       return;
     }
 
@@ -31,7 +81,20 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
 
     recognizer.onresult = event => {
       const transcript = event.results[0][0].transcript;
-      setMealText(prev => (prev ? `${prev}, ${transcript}` : transcript));
+      const clauses = transcript.split(/[,+]|(?:\band\b)/i).map(s => s.trim()).filter(Boolean);
+      if (clauses.length > 0) {
+        setFoodRows(prev => {
+          const newRows = clauses.map(c => {
+            const m = c.match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?\s+(.+)$/);
+            if (m) {
+              return { qty: m[1], unit: m[2] || 'serving', food: m[3] };
+            }
+            return { qty: '1', unit: 'serving', food: c };
+          });
+          const filteredPrev = prev.filter(r => r.food && r.food.trim());
+          return [...filteredPrev, ...newRows];
+        });
+      }
     };
 
     recognizer.onspeechend = () => {
@@ -48,7 +111,15 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
 
   async function handleAnalyze(e) {
     e.preventDefault();
-    if (!pid || !mealText.trim()) return;
+    const validRows = foodRows.filter(r => r.food && r.food.trim());
+    if (!pid || validRows.length === 0) {
+      setError('Please enter at least one food item with quantity in the table');
+      return;
+    }
+
+    const compiledText = validRows
+      .map(r => `${r.qty || 1} ${r.unit || 'serving'} ${r.food.trim()}`)
+      .join(', ');
 
     setLoading(true);
     setResult(null);
@@ -59,7 +130,7 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: mealText.trim(),
+          text: compiledText,
           lang: voiceLang.split('-')[0] || 'en',
           save: true,
         }),
@@ -138,12 +209,18 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
         </div>
       )}
 
-      {/* Meal text area with voice button */}
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-mute">
-            Describe What Was Eaten or Drunk (Any Food or Cuisine)
-          </label>
+      {/* Table Form for Adding Food with Quantity */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-ink block">
+              Add Food &amp; Beverage Items Table
+            </label>
+            <span className="text-[11px] text-mute">
+              Enter each item and quantity eaten. Autocomplete suggestions available.
+            </span>
+          </div>
+
           <button
             type="button"
             onClick={startVoice}
@@ -154,21 +231,135 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
             }`}
           >
             {isListening ? <MicOff size={14} /> : <Mic size={14} />}
-            {isListening ? 'Listening...' : 'Speak Meal'}
+            {isListening ? 'Listening...' : 'Voice Dictate'}
           </button>
         </div>
 
-        <textarea
-          rows={3}
-          value={mealText}
-          onChange={e => setMealText(e.target.value)}
-          placeholder="e.g. sambar 1 cup, chick peas 100gm, egg 1, avocado 1, dragon fruit 150g"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm resize-y"
-          required
-        />
-        <p className="text-[11px] text-mute mt-1">
-          💡 You can write in natural order (e.g. <em>"2 idlis"</em> or <em>"sambar 1 cup, egg 1, chick peas 100gm"</em>).
-        </p>
+        {/* The Table Input Grid */}
+        <div className="overflow-x-auto rounded-2xl border-2 border-line bg-white shadow-xs">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-gradient-to-r from-tint-light to-tint/60 text-teal-dark font-bold uppercase tracking-wider border-b border-line text-[10px]">
+              <tr>
+                <th className="py-2.5 px-3 w-10 text-center">#</th>
+                <th className="py-2.5 px-3">Food Item / Dish</th>
+                <th className="py-2.5 px-3 w-28">Quantity</th>
+                <th className="py-2.5 px-3 w-36">Serving / Unit</th>
+                <th className="py-2.5 px-3 w-16 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {foodRows.map((row, idx) => (
+                <tr key={idx} className="hover:bg-tint-light/30 transition-colors">
+                  <td className="py-2.5 px-3 text-center text-mute font-bold text-xs">
+                    {idx + 1}
+                  </td>
+
+                  {/* Food Item Name Input with Datalist */}
+                  <td className="py-2 px-3">
+                    <input
+                      type="text"
+                      list="food-suggestions"
+                      value={row.food}
+                      onChange={e => handleFoodChange(idx, 'food', e.target.value)}
+                      placeholder="e.g. Sambar, Idli, Chapati, Dal, Rice..."
+                      className="w-full px-3 py-2 rounded-xl border border-line bg-bg focus:border-teal focus:bg-white outline-none text-xs sm:text-sm font-medium"
+                      required
+                    />
+                  </td>
+
+                  {/* Quantity Number Input */}
+                  <td className="py-2 px-3">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0.1"
+                      value={row.qty}
+                      onChange={e => handleFoodChange(idx, 'qty', e.target.value)}
+                      placeholder="1"
+                      className="w-full px-3 py-2 rounded-xl border border-line bg-bg focus:border-teal focus:bg-white outline-none text-xs sm:text-sm font-bold text-teal-dark text-center"
+                      required
+                    />
+                  </td>
+
+                  {/* Unit / Serving Dropdown */}
+                  <td className="py-2 px-3">
+                    <select
+                      value={row.unit}
+                      onChange={e => handleFoodChange(idx, 'unit', e.target.value)}
+                      className="w-full px-2.5 py-2 rounded-xl border border-line bg-bg focus:border-teal focus:bg-white outline-none text-xs font-semibold"
+                    >
+                      <option value="bowl">bowl (200-250g)</option>
+                      <option value="cup">cup (150-200g)</option>
+                      <option value="piece">piece / item</option>
+                      <option value="glass">glass (200-250mL)</option>
+                      <option value="plate">plate / portion</option>
+                      <option value="g">grams (g)</option>
+                      <option value="mL">milliliters (mL)</option>
+                      <option value="tbsp">tablespoon (tbsp)</option>
+                      <option value="serving">serving</option>
+                    </select>
+                  </td>
+
+                  {/* Remove Button */}
+                  <td className="py-2 px-3 text-center">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveRow(idx)}
+                      disabled={foodRows.length === 1 && !row.food}
+                      className="w-7 h-7 rounded-lg inline-flex items-center justify-center text-mute hover:text-risk-high hover:bg-risk-highBg transition-all disabled:opacity-30"
+                      title="Remove row"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Add Row Button & Quick Presets */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => handleAddRow()}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-tint hover:bg-teal hover:text-white text-teal-dark border border-teal/30 text-xs font-bold transition-all shadow-xs"
+          >
+            <Plus size={14} />
+            + Add Another Food Item
+          </button>
+
+          {/* Quick preset badges to instantly add common dialysis foods */}
+          <div className="flex items-center gap-1 flex-wrap text-[11px] text-mute">
+            <span className="font-semibold mr-1">Quick add:</span>
+            {[
+              { name: 'Sambar', unit: 'bowl' },
+              { name: 'Idli', unit: 'piece', qty: '2' },
+              { name: 'Chapati', unit: 'piece', qty: '2' },
+              { name: 'Rice', unit: 'cup' },
+              { name: 'Dal', unit: 'bowl' },
+              { name: 'Banana', unit: 'piece' },
+              { name: 'Coconut water', unit: 'glass' },
+              { name: 'Tea / Chai', unit: 'cup' },
+            ].map((p, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => handleAddRow(p.name, p.qty || '1', p.unit)}
+                className="px-2 py-0.5 rounded-md bg-white border border-line hover:border-teal text-mute hover:text-ink transition-colors"
+              >
+                + {p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Food Suggestions Datalist */}
+        <datalist id="food-suggestions">
+          {SUGGESTED_FOODS.map((f, i) => (
+            <option key={i} value={f} />
+          ))}
+        </datalist>
       </div>
 
       {/* Controls row */}
@@ -189,8 +380,9 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
         <button
           type="submit"
           disabled={loading}
-          className="px-5 py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white font-semibold text-sm shadow-sm transition-all disabled:opacity-50"
+          className="px-5 py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white font-semibold text-sm shadow-sm transition-all disabled:opacity-50 flex items-center gap-1.5"
         >
+          <Sparkles size={15} />
           {loading ? 'Analyzing Food Composition...' : 'Analyze & Calculate Nutrients'}
         </button>
       </div>
