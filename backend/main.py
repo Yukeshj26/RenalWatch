@@ -903,11 +903,11 @@ def acknowledge_alert(pid: int, aid: int):
         c.close()
 
 
-# Mount frontend static files at root AFTER all API routes
-_FRONTEND_DIST = _FRONTEND_DIR / "dist"
-_SERVE_DIR = _FRONTEND_DIST if _FRONTEND_DIST.is_dir() else _FRONTEND_DIR
-
-if _SERVE_DIR.is_dir():
-    app.mount("/", StaticFiles(directory=str(_SERVE_DIR), html=True), name="frontend")
+# Mount frontend static files at root AFTER all API routes (local dev only)
+if not os.getenv("VERCEL") and not os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+    _FRONTEND_DIST = _FRONTEND_DIR / "dist"
+    _SERVE_DIR = _FRONTEND_DIST if _FRONTEND_DIST.is_dir() else _FRONTEND_DIR
+    if _SERVE_DIR.is_dir():
+        app.mount("/", StaticFiles(directory=str(_SERVE_DIR), html=True), name="frontend")
 
 

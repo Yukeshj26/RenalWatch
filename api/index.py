@@ -2,6 +2,7 @@
 api/index.py – Vercel Serverless Function entry point for RenalWatch FastAPI backend.
 """
 
+import json
 import os
 import sys
 import traceback
@@ -16,40 +17,52 @@ for _p in [str(_ROOT_DIR), str(_CURRENT_DIR), str(_CWD)]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-
-# Initialize the main app
+_init_error = None
 try:
     from backend.main import app
-except Exception as _import_err:
+except BaseException as _err:
     _init_error = traceback.format_exc()
-    app = FastAPI(title="RenalWatch Diagnostic Gateway")
+    try:
+        from fastapi import FastAPI
+        from fastapi.responses import JSONResponse
+        from fastapi.middleware.cors import CORSMiddleware
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-    def catch_import_error(path: str):
-        return JSONResponse(
-            status_code=200,
-            content={
-                "status": "startup_import_error",
-                "error": str(_import_err),
-                "traceback": _init_error,
-                "cwd": str(Path.cwd()),
-                "sys_path": sys.path,
-                "dir_contents": os.listdir(".") if Path(".").exists() else [],
-            },
+        app = FastAPI(title="RenalWatch Diagnostic Gateway")
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
         )
+
+        @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+        def catch_import_error(path: str):
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": "startup_import_error",
+                    "error": str(_err),
+                    "traceback": _init_error,
+                    "cwd": str(Path.cwd()),
+                    "sys_path": sys.path,
+                },
+            )
+    except BaseException:
+        # Zero-dependency WSGI fallback callable
+        def app(environ, start_response):
+            body = json.dumps({
+                "status": "critical_import_failure",
+                "error": str(_err),
+                "traceback": _init_error,
+            }).encode("utf-8")
+            start_response("200 OK", [
+                ("Content-Type", "application/json"),
+                ("Access-Control-Allow-Origin", "*"),
+            ])
+            return [body]
 else:
-    # App imported successfully - add diagnostic ping route directly
+    # Expose health & ping diagnostics directly on app
     @app.get("/api/ping")
     def ping():
         return {
