@@ -9,18 +9,24 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from datetime import date, timedelta
 from typing import Optional
-
-import numpy as np
-from sklearn.linear_model import LogisticRegression
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Global ML model (trained lazily at startup via train_model())
+# Calibrated Logistic Regression Weights (Fit on synthetic dialysis cohort)
+# Features: [idwg_pct, days_since, k_load, symptom_count, bp_sys]
 # ---------------------------------------------------------------------------
-_ml_model: Optional[LogisticRegression] = None
+_LR_INTERCEPT: float = -27.213217563081283
+_LR_COEFFICIENTS: list[float] = [
+    1.9443435997151586,   # idwg_pct: +1.944 per 1% interdialytic weight gain
+    1.5264315473014770,   # days_since: +1.526 per day since last session
+    0.003216729058893583, # k_load: +0.0032 per mg potassium intake
+    2.7861701240892676,   # symptom_count: +2.786 per concurrent symptom
+    0.05721320065675756,  # bp_sys: +0.057 per mmHg systolic BP
+]
 
 
 # ---------------------------------------------------------------------------
@@ -103,63 +109,36 @@ def _rule_score(
 # ---------------------------------------------------------------------------
 
 def train_model() -> None:
-    """Train a logistic regression on synthetic features.
-
-    Features: [idwg_pct, days_since, k_load, symptom_count, bp_sys]
-    Label:    1 if the patient would be high-risk by rules, else 0
-
-    Called once at application startup.
+    """Initialize the logistic regression scoring parameters.
+    Pre-warmed inference engine optimized for serverless deployments.
     """
-    global _ml_model
-
-    # Generate synthetic training data
-    rng = np.random.RandomState(42)
-    n = 500
-    idwg = rng.uniform(0.5, 6.0, n)
-    days_since = rng.randint(0, 5, n).astype(float)
-    k_load = rng.uniform(400, 3000, n)
-    sym_count = rng.randint(0, 6, n).astype(float)
-    bp_sys = rng.uniform(110, 180, n)
-
-    X = np.column_stack([idwg, days_since, k_load, sym_count, bp_sys])
-
-    # Label: 1 when rule score would be "high" (≥55)
-    y = np.zeros(n, dtype=int)
-    for i in range(n):
-        score, _ = _rule_score(
-            idwg_pct=idwg[i],
-            days_since=int(days_since[i]),
-            k_today=int(k_load[i]),
-            p_today=0,
-            fluid_today=0,
-            fluid_limit=1000,
-            symptoms=["swelling"] * int(sym_count[i]),  # approximate
-            bp_sys=int(bp_sys[i]),
-        )
-        y[i] = 1 if score >= 55 else 0
-
-    _ml_model = LogisticRegression(max_iter=1000, random_state=42)
-    _ml_model.fit(X, y)
-    logger.info("ML risk model trained on %d synthetic samples", n)
+    logger.info("ML risk model initialized with pre-calibrated logistic regression weights.")
 
 
 def ml_predict(features: dict) -> float:
-    """Return the ML model's probability of high risk (0.0 – 1.0).
+    """Return the logistic regression model's probability of high risk (0.0 – 1.0).
 
+    Computes P(y=1|X) = 1 / (1 + exp(-z)) using calibrated weights:
     features keys: idwg_pct, days_since, k_load, symptom_count, bp_sys
     """
-    if _ml_model is None:
-        return 0.0
-    X = np.array([[
-        features.get("idwg_pct", 0),
-        features.get("days_since", 0),
-        features.get("k_load", 0),
-        features.get("symptom_count", 0),
-        features.get("bp_sys", 120),
-    ]])
-    prob = _ml_model.predict_proba(X)[0]
-    # Index 1 is the "high risk" class
-    return float(prob[1]) if len(prob) > 1 else 0.0
+    idwg = float(features.get("idwg_pct", 0.0))
+    days = float(features.get("days_since", 0.0))
+    k = float(features.get("k_load", 0.0))
+    syms = float(features.get("symptom_count", 0.0))
+    bp = float(features.get("bp_sys", 120.0))
+
+    z = (
+        _LR_INTERCEPT
+        + _LR_COEFFICIENTS[0] * idwg
+        + _LR_COEFFICIENTS[1] * days
+        + _LR_COEFFICIENTS[2] * k
+        + _LR_COEFFICIENTS[3] * syms
+        + _LR_COEFFICIENTS[4] * bp
+    )
+
+    # Numerically stable sigmoid function
+    z_clamped = max(min(z, 50.0), -50.0)
+    return 1.0 / (1.0 + math.exp(-z_clamped))
 
 
 # ---------------------------------------------------------------------------
