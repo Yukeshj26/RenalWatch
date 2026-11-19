@@ -123,17 +123,16 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
         <form onSubmit={handlePatientLogin} className="space-y-4">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
-              Registered Phone Number or Patient Name
+              Registered Email, Mobile Number, or Patient Name
             </label>
             <div className="relative">
               <Phone size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
                 type="text"
-                inputMode="tel"
-                autoComplete="tel"
+                autoComplete="username"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
-                placeholder="Enter registered mobile number or name"
+                placeholder="Enter registered email, mobile number, or name"
                 className="w-full pl-10 pr-3.5 py-3 sm:py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"
                 required
               />

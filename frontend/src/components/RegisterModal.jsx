@@ -3,6 +3,7 @@ import {
   UserPlus,
   CheckCircle2,
   Phone,
+  Mail,
   ShieldCheck,
   KeyRound,
   Loader2,
@@ -17,11 +18,13 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
   const [dryWeight, setDryWeight] = useState('');
   const [fluidLimit, setFluidLimit] = useState('1000');
   const [dialysisSchedule, setDialysisSchedule] = useState('Mon,Wed,Fri');
+  const [contactType, setContactType] = useState('email'); // 'email' | 'phone'
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [language, setLanguage] = useState('en');
 
-  // Real Mobile OTP state
+  // Real OTP state (Email SMTP / Mobile SMS)
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
@@ -46,12 +49,20 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  // Request SMS OTP
+  // Request Email or SMS OTP
   async function handleSendOtp() {
-    const rawDigits = phone.replace(/\D/g, '');
-    if (!phone || rawDigits.length < 10) {
-      setOtpError('Please enter a valid 10-digit mobile number first.');
-      return;
+    if (contactType === 'email') {
+      const emailTrim = email.trim();
+      if (!emailTrim || !emailTrim.includes('@') || !emailTrim.includes('.')) {
+        setOtpError('Please enter a valid email address (e.g. yourname@gmail.com).');
+        return;
+      }
+    } else {
+      const rawDigits = phone.replace(/\D/g, '');
+      if (!phone || rawDigits.length < 10) {
+        setOtpError('Please enter a valid 10-digit mobile number first.');
+        return;
+      }
     }
 
     setOtpLoading(true);
@@ -59,11 +70,15 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
     setOtpMessage(null);
     setDevOtpCode(null);
 
+    const targetPayload = contactType === 'email'
+      ? { email: email.trim(), name: name.trim() }
+      : { phone: phone.trim(), name: name.trim() };
+
     try {
       const res = await fetch('/api/auth/otp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim() }),
+        body: JSON.stringify(targetPayload),
       });
       const text = await res.text();
       let data = {};
@@ -78,9 +93,9 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       setOtpTimer(60);
       if (data.dev_otp) {
         setDevOtpCode(data.dev_otp);
-        setOtpMessage('Sandbox Mode: Live carrier API keys not configured. Use code below.');
+        setOtpMessage(data.message || 'Sandbox Mode: Live SMTP/SMS gateway not ready. Use code below.');
       } else {
-        setOtpMessage(data.message || 'SMS OTP sent to your phone! Please enter the 6-digit code.');
+        setOtpMessage(data.message || (contactType === 'email' ? 'Real OTP email dispatched! Check your inbox/spam.' : 'Real SMS OTP sent to your phone!'));
       }
     } catch (err) {
       setOtpError(err.message);
@@ -89,7 +104,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
     }
   }
 
-  // Verify entered SMS OTP
+  // Verify entered OTP
   async function handleVerifyOtp() {
     if (!otp || otp.trim().length !== 6) {
       setOtpError('Please enter the complete 6-digit OTP code.');
@@ -99,11 +114,15 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
     setOtpVerifying(true);
     setOtpError(null);
 
+    const targetPayload = contactType === 'email'
+      ? { email: email.trim(), otp: otp.trim() }
+      : { phone: phone.trim(), otp: otp.trim() };
+
     try {
       const res = await fetch('/api/auth/otp/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: phone.trim(), otp: otp.trim() }),
+        body: JSON.stringify(targetPayload),
       });
       const text = await res.text();
       let data = {};
@@ -115,7 +134,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       if (!res.ok) throw new Error(data.detail || 'OTP verification failed');
 
       setOtpVerified(true);
-      setOtpMessage('Mobile number verified successfully!');
+      setOtpMessage(contactType === 'email' ? 'Email address verified successfully!' : 'Mobile number verified successfully!');
       setDevOtpCode(null);
     } catch (err) {
       setOtpError(err.message);
@@ -124,13 +143,13 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
     }
   }
 
-  // Submit registration with verified mobile
+  // Submit registration with verified contact
   async function handleRegister(e) {
     e.preventDefault();
-    if (!name || !age || !dryWeight || !phone || !password) return;
+    if (!name || !age || !dryWeight || !password) return;
 
     if (!otpVerified) {
-      setOtpError('Please verify your mobile number with the SMS OTP before registering.');
+      setOtpError(`Please verify your ${contactType === 'email' ? 'email address' : 'mobile number'} with the OTP code first.`);
       return;
     }
 
@@ -148,7 +167,8 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           dry_weight: parseFloat(dryWeight),
           fluid_limit: parseInt(fluidLimit, 10) || 1000,
           dialysis_schedule: dialysisSchedule,
-          phone: phone.trim(),
+          email: email.trim() || undefined,
+          phone: phone.trim() || undefined,
           password: password.trim(),
           language,
         }),
@@ -284,13 +304,62 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         </div>
       </div>
 
-      {/* Mobile Number & Real OTP Verification */}
+      {/* Contact Method & Real OTP Verification (Email SMTP or Mobile SMS) */}
       <div className="p-3.5 rounded-2xl border border-line bg-white shadow-xs space-y-3">
+        {/* Verification Method Tabs */}
+        <div className="grid grid-cols-2 p-1 bg-bg rounded-xl border border-line gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setContactType('email');
+              setOtpVerified(false);
+              setOtpSent(false);
+              setOtpError(null);
+              setOtpMessage(null);
+            }}
+            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
+              contactType === 'email'
+                ? 'bg-white text-teal shadow-2xs border border-teal/20'
+                : 'text-mute hover:text-ink'
+            }`}
+          >
+            <Mail size={13} />
+            Email OTP (SMTP)
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setContactType('phone');
+              setOtpVerified(false);
+              setOtpSent(false);
+              setOtpError(null);
+              setOtpMessage(null);
+            }}
+            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
+              contactType === 'phone'
+                ? 'bg-white text-teal shadow-2xs border border-teal/20'
+                : 'text-mute hover:text-ink'
+            }`}
+          >
+            <Phone size={13} />
+            Mobile OTP (SMS)
+          </button>
+        </div>
+
         <div>
           <div className="flex items-center justify-between mb-1">
             <label className="text-xs font-bold uppercase tracking-wider text-mute flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-teal" />
-              Mobile Number (SMS OTP Verification) *
+              {contactType === 'email' ? (
+                <>
+                  <Mail className="w-3.5 h-3.5 text-teal" />
+                  Email Address (Real SMTP OTP) *
+                </>
+              ) : (
+                <>
+                  <Phone className="w-3.5 h-3.5 text-teal" />
+                  Mobile Number (SMS OTP) *
+                </>
+              )}
             </label>
             {otpVerified && (
               <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal bg-teal/10 px-2 py-0.5 rounded-full">
@@ -301,24 +370,44 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           </div>
 
           <div className="flex gap-2">
-            <input
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              value={phone}
-              onChange={(e) => {
-                setPhone(e.target.value);
-                if (otpVerified) setOtpVerified(false);
-              }}
-              disabled={otpVerified}
-              placeholder="e.g. 9876543210"
-              className={`flex-1 px-3 py-2.5 sm:py-2 rounded-xl border text-base sm:text-sm outline-none transition-all ${
-                otpVerified
-                  ? 'bg-teal/5 border-teal text-teal-dark font-medium cursor-not-allowed'
-                  : 'bg-bg border-line focus:border-teal'
-              }`}
-              required
-            />
+            {contactType === 'email' ? (
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (otpVerified) setOtpVerified(false);
+                }}
+                disabled={otpVerified}
+                placeholder="e.g. yukeshj22@gmail.com"
+                className={`flex-1 px-3 py-2.5 sm:py-2 rounded-xl border text-base sm:text-sm outline-none transition-all ${
+                  otpVerified
+                    ? 'bg-teal/5 border-teal text-teal-dark font-medium cursor-not-allowed'
+                    : 'bg-bg border-line focus:border-teal'
+                }`}
+                required
+              />
+            ) : (
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (otpVerified) setOtpVerified(false);
+                }}
+                disabled={otpVerified}
+                placeholder="e.g. 9876543210"
+                className={`flex-1 px-3 py-2.5 sm:py-2 rounded-xl border text-base sm:text-sm outline-none transition-all ${
+                  otpVerified
+                    ? 'bg-teal/5 border-teal text-teal-dark font-medium cursor-not-allowed'
+                    : 'bg-bg border-line focus:border-teal'
+                }`}
+                required
+              />
+            )}
 
             {!otpVerified && (
               <button
@@ -348,7 +437,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         {otpSent && !otpVerified && (
           <div className="pt-2 border-t border-line/60 space-y-2">
             <label className="block text-xs font-semibold text-mute">
-              Enter 6-digit SMS verification code sent to {phone}:
+              Enter 6-digit verification code sent to {contactType === 'email' ? email : phone}:
             </label>
             <div className="flex gap-2">
               <input

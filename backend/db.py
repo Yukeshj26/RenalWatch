@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS patients (
     dialysis_schedule TEXT  NOT NULL DEFAULT 'Mon,Wed,Fri',
     last_session    TEXT,           -- ISO date of most recent session
     phone           TEXT,
+    email           TEXT,
     password        TEXT    NOT NULL DEFAULT '1234',
     language        TEXT    NOT NULL DEFAULT 'en',
     htn             INTEGER DEFAULT 0,
@@ -419,6 +420,7 @@ def init() -> None:
             "ALTER TABLE patients ADD COLUMN dm INTEGER DEFAULT 0",
             "ALTER TABLE patients ADD COLUMN hemo REAL",
             "ALTER TABLE patients ADD COLUMN baseline_pot REAL",
+            "ALTER TABLE patients ADD COLUMN email TEXT",
             "ALTER TABLE logs ADD COLUMN created_at TEXT",
         ]:
             try:

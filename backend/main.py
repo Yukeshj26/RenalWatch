@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from backend import db, risk, nutrition, safety, note_analyzer, sms, config, counterfactual
+from backend import db, risk, nutrition, safety, note_analyzer, sms, config, counterfactual, smtp_mailer
 
 # ---------------------------------------------------------------------------
 # Load local .env configuration if present
@@ -76,17 +76,23 @@ class RegisterBody(BaseModel):
     dry_weight: float
     fluid_limit: int = 1000
     dialysis_schedule: str = "Mon,Wed,Fri"
-    phone: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
     password: str
     language: str = "en"
 
 
 class SendOtpBody(BaseModel):
-    phone: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    target: Optional[str] = None
+    name: Optional[str] = ""
 
 
 class VerifyOtpBody(BaseModel):
-    phone: str
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    target: Optional[str] = None
     otp: str
 
 
@@ -344,41 +350,57 @@ def patient_state(pid: int) -> dict:
 
 @app.post("/api/auth/otp/send")
 def send_otp(body: SendOtpBody):
-    """Generate and dispatch a real carrier SMS OTP to the patient's mobile number."""
-    if not body.phone or len(body.phone.strip()) < 8:
-        raise HTTPException(400, "A valid 10-digit mobile number is required")
+    """Generate and dispatch a real SMTP email OTP or carrier SMS OTP."""
+    target = (body.email or body.target or body.phone or "").strip()
+    if not target:
+        raise HTTPException(400, "An email address or 10-digit mobile number is required")
 
-    phone_clean = sms.clean_phone(body.phone)
-    # Generate cryptographically secure 6-digit OTP
     otp_code = f"{secrets.randbelow(900000) + 100000}"
     expires_at = int(time.time()) + 300  # 5 minutes validity
     now_iso = datetime.utcnow().isoformat()
 
+    is_email = "@" in target
+
+    if is_email:
+        identifier = target.lower()
+    else:
+        identifier = sms.clean_phone(target)
+        if len(identifier.replace("+", "")) < 8:
+            raise HTTPException(400, "A valid 10-digit mobile number is required")
+
     c = db.conn()
     try:
-        # Clear out unverified OTPs for this phone
-        c.execute("DELETE FROM otps WHERE phone = ? AND verified = 0", (phone_clean,))
+        # Clear out unverified OTPs for this identifier
+        c.execute("DELETE FROM otps WHERE phone = ? AND verified = 0", (identifier,))
         c.execute(
             """INSERT INTO otps (phone, otp, expires_at, verified, created_at)
                VALUES (?, ?, ?, 0, ?)""",
-            (phone_clean, otp_code, expires_at, now_iso),
+            (identifier, otp_code, expires_at, now_iso),
         )
         c.commit()
     finally:
         c.close()
 
-    # Dispatch via live carrier gateway
-    delivery_status = sms.send_carrier_sms(phone_clean, otp_code)
+    # Dispatch: Email via SMTP or SMS via Carrier gateway
+    if is_email:
+        delivery_status = smtp_mailer.send_smtp_otp(identifier, otp_code, body.name or "")
+    else:
+        # If OTP_MODE is explicitly set to email and SMTP is configured, and no carrier keys are set,
+        # but user entered phone, dispatch via carrier SMS
+        delivery_status = sms.send_carrier_sms(identifier, otp_code)
+
     return delivery_status
 
 
 @app.post("/api/auth/otp/verify")
 def verify_otp(body: VerifyOtpBody):
-    """Verify the 6-digit SMS OTP."""
-    if not body.phone or not body.otp:
-        raise HTTPException(400, "Mobile number and OTP code are required")
+    """Verify the 6-digit email or SMS OTP."""
+    target = (body.email or body.target or body.phone or "").strip()
+    if not target or not body.otp:
+        raise HTTPException(400, "Target address/phone and OTP code are required")
 
-    phone_clean = sms.clean_phone(body.phone)
+    is_email = "@" in target
+    identifier = target.lower() if is_email else sms.clean_phone(target)
     otp_clean = body.otp.strip()
     now_ts = int(time.time())
 
@@ -388,7 +410,7 @@ def verify_otp(body: VerifyOtpBody):
             """SELECT id, expires_at, verified FROM otps
                WHERE phone = ? AND otp = ?
                ORDER BY id DESC LIMIT 1""",
-            (phone_clean, otp_clean),
+            (identifier, otp_clean),
         ).fetchone()
 
         if not row:
@@ -404,8 +426,9 @@ def verify_otp(body: VerifyOtpBody):
         return {
             "ok": True,
             "verified": True,
-            "phone": phone_clean,
-            "message": "Mobile number verified successfully",
+            "target": identifier,
+            "phone": identifier,
+            "message": "Verification completed successfully",
         }
     finally:
         c.close()
@@ -416,44 +439,56 @@ def register(body: RegisterBody):
     """Register a new patient and create baseline clinical profile."""
     c = db.conn()
     try:
-        phone_clean = sms.clean_phone(body.phone)
-        existing = c.execute("SELECT id FROM patients WHERE phone = ?", (phone_clean,)).fetchone()
-        if existing:
-            raise HTTPException(400, "This phone number is already registered")
+        phone_clean = sms.clean_phone(body.phone or "") if body.phone else ""
+        email_clean = (body.email or "").strip().lower()
 
-        # Verify that this mobile number has a recently verified OTP (last 15 mins)
+        if not phone_clean and not email_clean:
+            raise HTTPException(400, "Mobile phone number or email address is required")
+
+        if phone_clean:
+            existing_phone = c.execute("SELECT id FROM patients WHERE phone = ?", (phone_clean,)).fetchone()
+            if existing_phone:
+                raise HTTPException(400, "This phone number is already registered")
+
+        if email_clean:
+            existing_email = c.execute("SELECT id FROM patients WHERE email = ?", (email_clean,)).fetchone()
+            if existing_email:
+                raise HTTPException(400, "This email address is already registered")
+
+        # Verify that this contact (phone or email) has a recently verified OTP (last 15 mins)
         now_ts = int(time.time())
         verified_otp = c.execute(
             """SELECT id FROM otps
-               WHERE phone = ? AND verified = 1 AND expires_at >= ?
+               WHERE (phone = ? OR phone = ?) AND verified = 1 AND expires_at >= ?
                ORDER BY id DESC LIMIT 1""",
-            (phone_clean, now_ts - 900),
+            (phone_clean, email_clean, now_ts - 900),
         ).fetchone()
 
         if not verified_otp:
             raise HTTPException(
                 400,
-                "Mobile number must be verified with OTP before registration."
+                "Mobile number or email must be verified with OTP before registration."
             )
 
         today_str = date.today().isoformat()
+        now_iso = datetime.now().isoformat()
         c.execute(
             """INSERT INTO patients
                (name, age, gender, dry_weight, fluid_limit, dialysis_schedule,
-                last_session, phone, password, language, synthetic)
-               VALUES (?,?,?,?,?,?,?,?,?,?,0)""",
+                last_session, phone, email, password, language, synthetic)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,0)""",
             (body.name.strip(), body.age, body.gender.upper(), body.dry_weight,
              body.fluid_limit, body.dialysis_schedule, today_str,
-             phone_clean, body.password, body.language),
+             phone_clean, email_clean, body.password, body.language),
         )
         pid = c.execute("SELECT last_insert_rowid()").fetchone()[0]
 
         # Insert initial baseline log
         c.execute(
             """INSERT INTO logs
-               (pid, day, weight, bp_sys, bp_dia, heart_rate, symptoms, note)
-               VALUES (?,?,?,?,?,?,?,?)""",
-            (pid, today_str, body.dry_weight, 120, 80, 72, "[]", "Initial baseline registration"),
+               (pid, day, weight, bp_sys, bp_dia, heart_rate, symptoms, note, created_at)
+               VALUES (?,?,?,?,?,?,?,?,?)""",
+            (pid, today_str, body.dry_weight, 120, 80, 72, "[]", "Initial baseline registration", now_iso),
         )
         c.commit()
     finally:
@@ -483,22 +518,23 @@ def login(body: LoginBody):
             "message": "Welcome to the Clinic Management Portal",
         }
 
-    if not body.phone or not body.phone.strip():
-        raise HTTPException(400, "Phone number or patient name required")
+    identifier = (body.phone or body.email or "").strip()
+    if not identifier:
+        raise HTTPException(400, "Phone number, email, or patient name required")
 
     if not body.password or not body.password.strip():
         raise HTTPException(400, "Password or PIN required")
 
     c = db.conn()
     try:
-        phone_clean = body.phone.strip()
         row = c.execute(
-            "SELECT * FROM patients WHERE phone = ? OR phone LIKE ? OR name LIKE ?",
-            (phone_clean, f"%{phone_clean}%", f"%{phone_clean}%"),
+            """SELECT * FROM patients
+               WHERE phone = ? OR email = ? OR phone LIKE ? OR email LIKE ? OR name LIKE ?""",
+            (identifier, identifier, f"%{identifier}%", f"%{identifier}%", f"%{identifier}%"),
         ).fetchone()
 
         if not row:
-            raise HTTPException(401, "No patient found with that phone number or name")
+            raise HTTPException(401, "No patient found with that phone, email, or name")
 
         pat = dict(row)
         # Check password against stored patient password
