@@ -1,5 +1,5 @@
 """
-api/index.py – Vercel Serverless Function entry point for RenalWatch FastAPI backend.
+api/index.py – Resilient Vercel ASGI Gateway for RenalWatch FastAPI backend.
 """
 
 import json
@@ -8,66 +8,62 @@ import sys
 import traceback
 from pathlib import Path
 
-# Add all candidate paths to sys.path so 'backend' is always importable
+# Add root and current directory to sys.path
 _CURRENT_DIR = Path(__file__).resolve().parent
 _ROOT_DIR = _CURRENT_DIR.parent
-_CWD = Path.cwd()
-
-for _p in [str(_ROOT_DIR), str(_CURRENT_DIR), str(_CWD)]:
+for _p in [str(_ROOT_DIR), str(_CURRENT_DIR)]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-_init_error = None
+_app_instance = None
+_startup_err = None
+
 try:
-    from backend.main import app
-except BaseException as _err:
-    _init_error = traceback.format_exc()
-    try:
-        from fastapi import FastAPI
-        from fastapi.responses import JSONResponse
-        from fastapi.middleware.cors import CORSMiddleware
+    from backend.main import app as _fastapi_app
+    _app_instance = _fastapi_app
+except BaseException as e:
+    _startup_err = traceback.format_exc()
 
-        app = FastAPI(title="RenalWatch Diagnostic Gateway")
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
 
-        @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-        def catch_import_error(path: str):
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "status": "startup_import_error",
-                    "error": str(_err),
-                    "traceback": _init_error,
-                    "cwd": str(Path.cwd()),
-                    "sys_path": sys.path,
-                },
-            )
-    except BaseException:
-        # Zero-dependency WSGI fallback callable
-        def app(environ, start_response):
+async def app(scope, receive, send):
+    """ASGI application entry point for Vercel Python runtime."""
+    if _startup_err:
+        if scope["type"] == "http":
             body = json.dumps({
-                "status": "critical_import_failure",
-                "error": str(_err),
-                "traceback": _init_error,
+                "status": "startup_error",
+                "error": _startup_err,
+                "sys_path": sys.path,
+                "cwd": os.getcwd(),
+                "files_in_root": os.listdir(".") if os.path.exists(".") else [],
             }).encode("utf-8")
-            start_response("200 OK", [
-                ("Content-Type", "application/json"),
-                ("Access-Control-Allow-Origin", "*"),
-            ])
-            return [body]
-else:
-    # Expose health & ping diagnostics directly on app
-    @app.get("/api/ping")
-    def ping():
-        return {
-            "status": "healthy",
-            "service": "RenalWatch Vercel Serverless",
-            "cwd": str(Path.cwd()),
-            "root_exists": _ROOT_DIR.exists(),
-        }
+            await send({
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    [b"content-type", b"application/json"],
+                    [b"access-control-allow-origin", b"*"],
+                ],
+            })
+            await send({"type": "http.response.body", "body": body})
+        return
+
+    # Forward to FastAPI with full error interception
+    try:
+        await _app_instance(scope, receive, send)
+    except BaseException as req_err:
+        req_trace = traceback.format_exc()
+        if scope["type"] == "http":
+            body = json.dumps({
+                "status": "request_error",
+                "error": str(req_err),
+                "traceback": req_trace,
+            }).encode("utf-8")
+            await send({
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    [b"content-type", b"application/json"],
+                    [b"access-control-allow-origin", b"*"],
+                ],
+            })
+            await send({"type": "http.response.body", "body": body})
