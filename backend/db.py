@@ -209,37 +209,37 @@ def seed(c: sqlite3.Connection) -> None:
     # Fallback to empirical UCI adult CKD values if JSON is unavailable
     age_mean = c_dist.get("age", {}).get("mean", 57.77)
     age_std  = c_dist.get("age", {}).get("std", 12.79)
-    age_p05  = c_dist.get("age", {}).get("p05", 34.0)
-    age_p95  = c_dist.get("age", {}).get("p95", 75.75)
+    age_min  = max(18, int(c_dist.get("age", {}).get("min", 19.0)))
+    age_max  = int(c_dist.get("age", {}).get("max", 90.0))
 
     htn_rate = c_prop.get("htn", {}).get("positive_rate", 0.6239)
     dm_rate  = c_prop.get("dm", {}).get("positive_rate", 0.5796)
 
     hemo_mean = c_dist.get("hemo", {}).get("mean", 10.60)
     hemo_std  = c_dist.get("hemo", {}).get("std", 2.16)
-    hemo_p05  = c_dist.get("hemo", {}).get("p05", 6.63)
-    hemo_p95  = c_dist.get("hemo", {}).get("p95", 13.97)
+    hemo_min  = float(c_dist.get("hemo", {}).get("min", 3.10))
+    hemo_max  = float(c_dist.get("hemo", {}).get("max", 16.10))
 
     pot_mean = c_dist.get("pot", {}).get("mean", 4.45)
     pot_std  = c_dist.get("pot", {}).get("std", 0.88)
-    pot_p05  = c_dist.get("pot", {}).get("p05", 3.20)
-    pot_p95  = c_dist.get("pot", {}).get("p95", 6.10)
+    pot_min  = float(c_dist.get("pot", {}).get("min", 2.50))
+    pot_max  = float(c_dist.get("pot", {}).get("max", 7.60))
 
     for idx, pat in enumerate(_PATIENTS):
         profile = dict(_RISK_PROFILES)[idx]
 
-        # Sample clinical parameters empirically from UCI CKD distributions
+        # Sample clinical parameters from UCI CKD distributions, strictly clipped to observed min/max
         sampled_age = int(round(random.gauss(age_mean, age_std)))
-        sampled_age = max(int(age_p05), min(int(age_p95), sampled_age))
+        sampled_age = max(age_min, min(age_max, sampled_age))
 
         sampled_htn = 1 if random.random() < htn_rate else 0
         sampled_dm = 1 if random.random() < dm_rate else 0
 
         sampled_hemo = round(random.gauss(hemo_mean, hemo_std), 1)
-        sampled_hemo = max(float(hemo_p05), min(float(hemo_p95), sampled_hemo))
+        sampled_hemo = max(hemo_min, min(hemo_max, sampled_hemo))
 
         sampled_pot = round(random.gauss(pot_mean, pot_std), 1)
-        sampled_pot = max(float(pot_p05), min(float(pot_p95), sampled_pot))
+        sampled_pot = max(pot_min, min(pot_max, sampled_pot))
 
         # --- Insert patient -------------------------------------------------
         # Determine last_session: for high-risk patients, make it 3+ days ago

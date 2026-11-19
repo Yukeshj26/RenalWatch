@@ -89,7 +89,7 @@ def extract_cohort_parameters(df: pd.DataFrame) -> dict:
             "citation": "Rubini, L., Soundarapandian, P., & Eswaran, P. (2015). Chronic Kidney Disease [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5G020",
         },
         "limitations": [
-            "CKD vs. Dialysis: The UCI dataset comprises general Chronic Kidney Disease (stages 1-5) patients, not exclusively maintenance hemodialysis patients.",
+            "Pre-Dialysis CKD vs. Maintenance Hemodialysis: The UCI dataset captures patients across stages 1-5 of Chronic Kidney Disease (predominantly pre-dialysis), NOT an end-stage maintenance hemodialysis cohort. Dialysis patients frequently present with higher pre-session serum potassium levels due to anuric fluid and solute retention. Baseline parameters here inform realistic variation, but do NOT represent true maintenance hemodialysis baselines.",
             "Absence of Interdialytic Features: The dataset contains no measurements for target dry weight, interdialytic weight gain (IDWG), dialysis schedules, dialysis session dates, meals/dietary nutrient intake, or interdialytic emergency outcomes. All such parameters in RenalWatch remain purely synthetic.",
             "Diastolic Blood Pressure Only: The 'bp' field in the UCI dataset records diastolic blood pressure only (40-180 mmHg); systolic BP was not recorded.",
             "Strict Non-Training Mandate: These distributions are used solely to parameterize realistic baseline synthetic patient demographics and for descriptive sanity checks of clinical rule thresholds. They are NOT used to train, optimize, or validate any risk prediction model.",
