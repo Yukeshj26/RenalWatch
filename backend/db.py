@@ -24,6 +24,9 @@ _PROJ_DB_PATH = Path(__file__).resolve().parent.parent / "renalwatch.db"
 
 def _resolve_db_path() -> Path:
     """Return writable DB path, copying seeded template DB to /tmp on Vercel/serverless."""
+    env_path = os.getenv("DATABASE_PATH")
+    if env_path:
+        return Path(env_path)
     if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
         tmp_db = Path("/tmp/renalwatch.db")
         if not tmp_db.exists() and _PROJ_DB_PATH.exists():

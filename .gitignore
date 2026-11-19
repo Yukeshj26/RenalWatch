@@ -44,3 +44,9 @@ Thumbs.db
 # Raw datasets
 kidney_disease.csv
 backend/data/cleaned_uci_ckd.csv
+
+# Test caches & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/

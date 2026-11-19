@@ -95,10 +95,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       {/* Name and Age */}
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+          <label htmlFor="reg-name" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
             Full Name *
           </label>
           <input
+            id="reg-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -108,10 +109,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           />
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+          <label htmlFor="reg-age" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
             Age *
           </label>
           <input
+            id="reg-age"
             type="number"
             min="10"
             max="110"
@@ -128,10 +130,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       {/* Gender & Dialysis Schedule */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+          <label htmlFor="reg-gender" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
             Gender
           </label>
           <select
+            id="reg-gender"
             value={gender}
             onChange={(e) => setGender(e.target.value)}
             className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm"
@@ -143,10 +146,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+          <label htmlFor="reg-schedule" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
             Dialysis Schedule
           </label>
           <select
+            id="reg-schedule"
             value={dialysisSchedule}
             onChange={(e) => setDialysisSchedule(e.target.value)}
             className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm"
@@ -161,10 +165,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       {/* Target Dry Weight & Daily Fluid Limit */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+          <label htmlFor="reg-dryweight" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
             Target Dry Weight (kg) *
           </label>
           <input
+            id="reg-dryweight"
             type="number"
             step="0.1"
             min="30"
@@ -179,10 +184,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+          <label htmlFor="reg-fluidlimit" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
             Daily Fluid Limit (mL)
           </label>
           <input
+            id="reg-fluidlimit"
             type="number"
             min="400"
             max="2500"
@@ -200,11 +206,12 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       {/* Contact Credentials (Mobile and/or Email) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1 flex items-center gap-1">
+          <label htmlFor="reg-phone" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1 flex items-center gap-1">
             <Phone size={12} className="text-teal" />
             Mobile Number *
           </label>
           <input
+            id="reg-phone"
             type="tel"
             inputMode="tel"
             autoComplete="tel"
@@ -216,11 +223,12 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1 flex items-center gap-1">
+          <label htmlFor="reg-email" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1 flex items-center gap-1">
             <Mail size={12} className="text-teal" />
             Email (Optional)
           </label>
           <input
+            id="reg-email"
             type="email"
             autoComplete="email"
             value={email}
@@ -234,11 +242,12 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
       {/* Password / PIN & Preferred Language */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1 flex items-center gap-1">
+          <label htmlFor="reg-password" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1 flex items-center gap-1">
             <Lock size={12} className="text-teal" />
             PIN / Password *
           </label>
           <input
+            id="reg-password"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -250,10 +259,11 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         </div>
 
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+          <label htmlFor="reg-lang" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
             Preferred Language
           </label>
           <select
+            id="reg-lang"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             className="w-full px-3 py-2.5 sm:py-2 rounded-xl border border-line bg-bg focus:border-teal outline-none text-base sm:text-sm font-medium"

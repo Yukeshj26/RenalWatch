@@ -122,12 +122,13 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
         /* Patient Credentials Form */
         <form onSubmit={handlePatientLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+            <label htmlFor="login-identifier" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
               Registered Email, Mobile Number, or Patient Name
             </label>
             <div className="relative">
               <Phone size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
+                id="login-identifier"
                 type="text"
                 autoComplete="username"
                 value={phone}
@@ -141,13 +142,14 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-mute">
+              <label htmlFor="login-patient-pass" className="block text-xs font-bold uppercase tracking-wider text-mute">
                 PIN or Password
               </label>
             </div>
             <div className="relative">
               <Lock size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
+                id="login-patient-pass"
                 type="password"
                 autoComplete="current-password"
                 value={patientPassword}
@@ -190,12 +192,13 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
         /* Clinic Management Credentials Form */
         <form onSubmit={handleClinicLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+            <label htmlFor="login-staff-id" className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
               Staff ID / Official Hospital Email
             </label>
             <div className="relative">
               <Mail size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
+                id="login-staff-id"
                 type="text"
                 autoComplete="username"
                 value={staffId}
@@ -209,13 +212,14 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-mute">
+              <label htmlFor="login-clinic-pass" className="block text-xs font-bold uppercase tracking-wider text-mute">
                 Clinic Access Key / Passcode
               </label>
             </div>
             <div className="relative">
               <Lock size={15} className="absolute left-3.5 top-3.5 text-mute" />
               <input
+                id="login-clinic-pass"
                 type="password"
                 autoComplete="current-password"
                 value={clinicPasscode}

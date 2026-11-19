@@ -28,6 +28,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="modal-title"
     >
       <div
         className="relative w-full max-w-xl max-h-[92vh] sm:max-h-[88vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-teal/15 animate-slideUpSheet sm:animate-popModal pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-0"
@@ -40,7 +41,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
 
         {/* Sticky Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 bg-white/95 backdrop-blur-md border-b border-line">
-          <h2 className="text-lg sm:text-xl font-bold font-heading text-ink flex items-center gap-2">
+          <h2 id="modal-title" className="text-lg sm:text-xl font-bold font-heading text-ink flex items-center gap-2">
             {title}
           </h2>
           <button
