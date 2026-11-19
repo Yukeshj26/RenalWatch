@@ -5,6 +5,9 @@
   "description": "RenalWatch – Dialysis Early-Warning Platform",
   "scripts": {
     "build": "cd frontend && npm install && npm run build && rm -rf node_modules",
-    "dev": "cd frontend && npm run dev"
+    "dev": "cd frontend && npm run dev",
+    "test": "npm --prefix frontend test && python -m pytest tests/",
+    "test:frontend": "npm --prefix frontend test",
+    "test:backend": "python -m pytest tests/ -v --cov=backend"
   }
 }

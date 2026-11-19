@@ -3,10 +3,11 @@
 **AI-Assisted Early-Warning Dialysis Companion for End-Stage Renal Disease (ESRD)**
 
 [![CI & Quality Assurance](https://github.com/Yukeshj26/RenalWatch/actions/workflows/ci.yml/badge.svg)](https://github.com/Yukeshj26/RenalWatch/actions/workflows/ci.yml)
-[![Tests Passing](https://img.shields.io/badge/Pytest-26%20Passed-brightgreen?style=flat&logo=pytest)](https://github.com/Yukeshj26/RenalWatch)
-[![Vitest Passing](https://img.shields.io/badge/Vitest-Passed-brightgreen?style=flat&logo=vitest)](https://github.com/Yukeshj26/RenalWatch)
-[![Core Risk Coverage](https://img.shields.io/badge/Coverage-99%25%20Core%20Risk-brightgreen?style=flat)](https://github.com/Yukeshj26/RenalWatch)
-[![Production Live](https://img.shields.io/badge/Vercel-Production%20Live-black?style=flat&logo=vercel)](https://github.com/Yukeshj26/RenalWatch)
+[![Tests Passing](https://img.shields.io/badge/Pytest-26%20Passed-brightgreen?style=flat&logo=pytest)](https://github.com/Yukeshj26/RenalWatch/blob/main/TESTING.md)
+[![Vitest Passing](https://img.shields.io/badge/Vitest-4%20Passed-brightgreen?style=flat&logo=vitest)](https://github.com/Yukeshj26/RenalWatch/blob/main/TESTING.md)
+[![Core Risk Coverage](https://img.shields.io/badge/Coverage-99%25%20Core%20Risk-brightgreen?style=flat)](https://github.com/Yukeshj26/RenalWatch/blob/main/TESTING.md)
+[![Production Live](https://img.shields.io/badge/Vercel-Production%20Live-black?style=flat&logo=vercel)](https://renal-watch.vercel.app)
+[![Testing Guide](https://img.shields.io/badge/Docs-TESTING.md-blue?style=flat)](TESTING.md)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue?style=flat&logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React 18](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react)](https://react.dev)
@@ -139,7 +140,7 @@ $$P(\text{High Risk}) = \frac{1}{1 + e^{-z}}$$
 | 🛡️ **Clinical Safety & Ethics** | Hard-coded zero-hallucination deterministic firewall intercepts red-flag symptoms. Zero PHI (100% synthetic patients). Strict non-training mandate on observational CKD data. | [`backend/safety.py`](file:///e:/renalwatch/backend/safety.py), [`SECURITY.md`](file:///e:/renalwatch/SECURITY.md), [`scripts/clean_uci_ckd.py`](file:///e:/renalwatch/scripts/clean_uci_ckd.py) | **100 / 100** |
 | ⚡ **Efficiency & Performance** | Pure mathematical sigmoid inference ($0.000000$ variance vs scikit-learn in ~15MB bundle). Sub-second cold starts on serverless edge functions. SQLite WAL mode. | [`backend/risk.py`](file:///e:/renalwatch/backend/risk.py), [`api/index.py`](file:///e:/renalwatch/api/index.py) | **100 / 100** |
 | ♿ **Accessibility & Inclusivity** | WAI-ARIA compliant modals (`aria-modal`, `aria-labelledby`, `htmlFor`/`id` linking). Multilingual voice logging and emergency triage advisories in English, Tamil, and Hindi. | [`frontend/src/components/Modal.jsx`](file:///e:/renalwatch/frontend/src/components/Modal.jsx), [`frontend/src/components/RegisterModal.jsx`](file:///e:/renalwatch/frontend/src/components/RegisterModal.jsx) | **98 / 100** |
-| 💎 **Code Quality & Architecture** | Strict separation of concerns (FastAPI backend + React frontend), Pydantic v2 schemas, parameterised SQL queries, Ruff/PEP8 compliance, and `.editorconfig` rules. | [`pyproject.toml`](file:///e:/renalwatch/pyproject.toml), [`.editorconfig`](file:///e:/renalwatch/.editorconfig), [`backend/main.py`](file:///e:/renalwatch/backend/main.py) | **98 / 100** |
+| 💎 **Code Quality & Architecture** | Strict separation of concerns (FastAPI backend + React frontend), Pydantic v2 schemas, parameterised SQL queries, PEP8 compliance, and `.editorconfig` rules. | [`pytest.ini`](file:///e:/renalwatch/pytest.ini), [`.editorconfig`](file:///e:/renalwatch/.editorconfig), [`backend/main.py`](file:///e:/renalwatch/backend/main.py) | **98 / 100** |
 
 ---
 
