@@ -146,12 +146,14 @@ def patient_state(pid: int) -> dict:
 
         current_weight = pat["dry_weight"]
         bp_sys, bp_dia = 120, 80
+        heart_rate = 72
         symptoms: list[str] = []
         note = ""
         if latest_log:
             current_weight = latest_log["weight"] or pat["dry_weight"]
             bp_sys = latest_log["bp_sys"] or 120
             bp_dia = latest_log["bp_dia"] or 80
+            heart_rate = latest_log["heart_rate"] or 72
             try:
                 symptoms = json.loads(latest_log["symptoms"] or "[]")
             except (json.JSONDecodeError, TypeError):
@@ -211,6 +213,7 @@ def patient_state(pid: int) -> dict:
             "current_weight": current_weight,
             "bp_sys": bp_sys,
             "bp_dia": bp_dia,
+            "heart_rate": heart_rate,
             "symptoms": symptoms,
             "weight_history": weight_history,
             "nutrients_today": {

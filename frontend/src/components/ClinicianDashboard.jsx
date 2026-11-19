@@ -125,10 +125,22 @@ export default function ClinicianDashboard({ patients, onSelectPatient }) {
                         </span>
                       </td>
 
-                      <td className="py-4 px-5 hidden md:table-cell max-w-md">
-                        <span className="text-ink line-clamp-2 text-xs sm:text-sm leading-relaxed" title={p.summary}>
-                          {p.summary || 'No acute concerns reported'}
-                        </span>
+                      <td className="py-4 px-5 hidden md:table-cell max-w-lg">
+                        {p.factors && p.factors.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {p.factors.map((f, fIdx) => (
+                              <span
+                                key={fIdx}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-bg border border-line text-ink shadow-2xs"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
+                                <span>{f.reason}</span>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-mute font-medium">All clinical metrics within safe baseline</span>
+                        )}
                       </td>
 
                       <td className="py-4 px-5 text-right sm:text-left">

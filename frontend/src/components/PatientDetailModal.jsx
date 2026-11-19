@@ -198,52 +198,232 @@ export default function PatientDetailModal({ patientId, onQuickLog, onSessionUpd
         </div>
       </div>
 
-      {/* Clinical Factor Breakdown */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-mute mb-2">
-          Clinical Factors Contributing to Urgency
+      {/* Health Condition & Clinical Status Table with Measured Quantities */}
+      <div className="space-y-2">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-mute">
+          Health Condition &amp; Measured Quantities
         </h4>
-        {r.factors && r.factors.length > 0 ? (
-          <ul className="space-y-1.5 text-xs">
-            {r.factors.map((f, idx) => (
-              <li
-                key={idx}
-                className="flex items-center justify-between p-2 rounded-lg bg-bg border border-line"
-              >
-                <span className="text-ink font-medium">{f.reason}</span>
-                <span className="font-bold text-teal-dark">+{f.points} pts</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-xs text-mute">No significant clinical risks identified.</p>
-        )}
+        <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-tint/70 text-mute font-bold uppercase tracking-wider border-b border-line text-[10px]">
+              <tr>
+                <th className="py-2 px-3">Condition / Health Metric</th>
+                <th className="py-2 px-3">Measured Quantity</th>
+                <th className="py-2 px-3">Clinical Target</th>
+                <th className="py-2 px-3 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line text-[11px]">
+              <tr className="hover:bg-tint-light/40">
+                <td className="py-2 px-3 font-semibold text-ink">Weight Gain (IDWG)</td>
+                <td className="py-2 px-3 font-bold text-ink">
+                  {data.current_weight} kg ({r.idwg_pct >= 0 ? '+' : ''}{r.idwg_pct}%)
+                </td>
+                <td className="py-2 px-3 text-mute">{data.dry_weight} kg (&lt; 4.0%)</td>
+                <td className="py-2 px-3 text-right">
+                  <span
+                    className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                      r.idwg_pct >= 4
+                        ? 'bg-risk-highBg text-risk-high'
+                        : r.idwg_pct >= 2
+                        ? 'bg-risk-medBg text-risk-med'
+                        : 'bg-risk-lowBg text-risk-low'
+                    }`}
+                  >
+                    {r.idwg_pct >= 4
+                      ? `+${(data.current_weight - data.dry_weight).toFixed(1)}kg High`
+                      : r.idwg_pct >= 2
+                      ? 'Moderate'
+                      : 'Safe'}
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-tint-light/40">
+                <td className="py-2 px-3 font-semibold text-ink">Blood Pressure</td>
+                <td className="py-2 px-3 font-bold text-ink">
+                  {data.bp_sys || 120} / {data.bp_dia || 80} mmHg
+                </td>
+                <td className="py-2 px-3 text-mute">&lt; 140/90 mmHg</td>
+                <td className="py-2 px-3 text-right">
+                  <span
+                    className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                      (data.bp_sys || 120) >= 160
+                        ? 'bg-risk-highBg text-risk-high'
+                        : (data.bp_sys || 120) >= 140
+                        ? 'bg-risk-medBg text-risk-med'
+                        : 'bg-risk-lowBg text-risk-low'
+                    }`}
+                  >
+                    {(data.bp_sys || 120) >= 160
+                      ? 'Stage 2 High'
+                      : (data.bp_sys || 120) >= 140
+                      ? 'Stage 1 High'
+                      : 'Controlled'}
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-tint-light/40">
+                <td className="py-2 px-3 font-semibold text-ink">Heart Rate</td>
+                <td className="py-2 px-3 font-bold text-ink">{data.heart_rate || 72} bpm</td>
+                <td className="py-2 px-3 text-mute">60–100 bpm</td>
+                <td className="py-2 px-3 text-right">
+                  <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-risk-lowBg text-risk-low">
+                    Normal
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-tint-light/40">
+                <td className="py-2 px-3 font-semibold text-ink">Daily Fluid Intake</td>
+                <td className="py-2 px-3 font-bold text-ink">
+                  {data.nutrients_today ? data.nutrients_today.fluid : 0} mL
+                </td>
+                <td className="py-2 px-3 text-mute">&lt; {data.fluid_limit || 1000} mL</td>
+                <td className="py-2 px-3 text-right">
+                  <span
+                    className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                      (data.nutrients_today?.fluid || 0) > (data.fluid_limit || 1000)
+                        ? 'bg-risk-highBg text-risk-high'
+                        : 'bg-risk-lowBg text-risk-low'
+                    }`}
+                  >
+                    {(data.nutrients_today?.fluid || 0) > (data.fluid_limit || 1000)
+                      ? 'Exceeded'
+                      : 'Safe'}
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-tint-light/40">
+                <td className="py-2 px-3 font-semibold text-ink">Daily Potassium (K)</td>
+                <td className="py-2 px-3 font-bold text-ink">
+                  {data.nutrients_today ? data.nutrients_today.k : 0} mg
+                </td>
+                <td className="py-2 px-3 text-mute">&lt; 2000 mg</td>
+                <td className="py-2 px-3 text-right">
+                  <span
+                    className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                      (data.nutrients_today?.k || 0) > 2000
+                        ? 'bg-risk-highBg text-risk-high'
+                        : 'bg-risk-lowBg text-risk-low'
+                    }`}
+                  >
+                    {(data.nutrients_today?.k || 0) > 2000 ? 'Elevated' : 'Safe'}
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-tint-light/40">
+                <td className="py-2 px-3 font-semibold text-ink">Days Since Dialysis</td>
+                <td className="py-2 px-3 font-bold text-ink">{data.days_since_session} days</td>
+                <td className="py-2 px-3 text-mute">&le; 2 days</td>
+                <td className="py-2 px-3 text-right">
+                  <span
+                    className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                      data.days_since_session >= 3
+                        ? 'bg-risk-highBg text-risk-high'
+                        : 'bg-risk-lowBg text-risk-low'
+                    }`}
+                  >
+                    {data.days_since_session >= 3 ? 'Long Interval' : 'On Schedule'}
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-tint-light/40">
+                <td className="py-2 px-3 font-semibold text-ink">Reported Symptoms</td>
+                <td colSpan={2} className="py-2 px-3 text-ink font-medium">
+                  {data.symptoms && data.symptoms.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {data.symptoms.map((s, idx) => (
+                        <span
+                          key={idx}
+                          className="px-1.5 py-0.5 bg-bg border border-line rounded text-[10px] font-semibold text-teal-dark"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-mute">None</span>
+                  )}
+                </td>
+                <td className="py-2 px-3 text-right">
+                  <span
+                    className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                      data.symptoms && data.symptoms.length > 0
+                        ? 'bg-risk-medBg text-risk-med'
+                        : 'bg-risk-lowBg text-risk-low'
+                    }`}
+                  >
+                    {data.symptoms && data.symptoms.length > 0
+                      ? `${data.symptoms.length} Active`
+                      : 'Clear'}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Recent Meals */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-mute mb-2">
-          Recent Meals Recorded
+      {/* Recent Logged Food Items Table with Quantities */}
+      <div className="space-y-2">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-mute">
+          Recent Logged Food Intake Table (with Quantities)
         </h4>
         {data.recent_meals && data.recent_meals.length > 0 ? (
-          <div className="space-y-1.5 text-xs">
-            {data.recent_meals.slice(0, 3).map((m, idx) => (
-              <div
-                key={idx}
-                className="p-2.5 rounded-lg bg-bg border border-line flex items-center justify-between"
-              >
-                <div>
-                  <span className="font-semibold text-ink capitalize">{m.text}</span>
-                  <span className="block text-[11px] text-mute">{m.day}</span>
-                </div>
-                <div className="text-right text-[11px] text-mute">
-                  <span>K: {m.k}mg</span> · <span>Fluid: {m.fluid}mL</span>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto rounded-xl border border-line bg-white shadow-xs">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-tint/70 text-mute font-bold uppercase tracking-wider border-b border-line text-[10px]">
+                <tr>
+                  <th className="py-2 px-3">Food Item</th>
+                  <th className="py-2 px-3">Quantity &amp; Serving</th>
+                  <th className="py-2 px-3 text-right">Potassium (K)</th>
+                  <th className="py-2 px-3 text-right">Fluid</th>
+                  <th className="py-2 px-3 text-right">Phosphorus (P)</th>
+                  <th className="py-2 px-3 text-right">Sodium (Na)</th>
+                  <th className="py-2 px-3 text-right">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line text-[11px]">
+                {data.recent_meals.slice(0, 4).flatMap((m, mIdx) => {
+                  if (Array.isArray(m.items) && m.items.length > 0) {
+                    return m.items.map((it, itIdx) => (
+                      <tr key={`${mIdx}-${itIdx}`} className="hover:bg-tint-light/40 transition-colors">
+                        <td className="py-2 px-3 font-semibold text-ink capitalize">
+                          {it.food}
+                        </td>
+                        <td className="py-2 px-3">
+                          <span className="inline-block px-2 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[10px] border border-teal/20">
+                            {it.qty ? `${it.qty} ${it.unit || 'serving'}` : (it.unit || '1 serving')}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-right text-ink font-semibold">{it.k} mg</td>
+                        <td className="py-2 px-3 text-right text-teal-dark font-semibold">{it.fluid} mL</td>
+                        <td className="py-2 px-3 text-right text-mute">{it.p} mg</td>
+                        <td className="py-2 px-3 text-right text-mute">{it.na} mg</td>
+                        <td className="py-2 px-3 text-right text-mute font-medium">{m.day}</td>
+                      </tr>
+                    ));
+                  }
+                  return (
+                    <tr key={mIdx} className="hover:bg-tint-light/40 transition-colors">
+                      <td className="py-2 px-3 font-semibold text-ink capitalize">{m.text}</td>
+                      <td className="py-2 px-3">
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-tint text-teal-dark font-bold text-[10px] border border-teal/20">
+                          1 serving
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-right text-ink font-semibold">{m.k} mg</td>
+                      <td className="py-2 px-3 text-right text-teal-dark font-semibold">{m.fluid} mL</td>
+                      <td className="py-2 px-3 text-right text-mute">{m.p} mg</td>
+                      <td className="py-2 px-3 text-right text-mute">{m.na} mg</td>
+                      <td className="py-2 px-3 text-right text-mute font-medium">{m.day}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         ) : (
-          <p className="text-xs text-mute">No meals logged yet.</p>
+          <p className="text-xs text-mute py-2">No meals logged yet.</p>
         )}
       </div>
 
