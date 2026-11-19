@@ -1,0 +1,1242 @@
+{
+  "_note": "Authoritative per-serving values based on Indian Food Composition Tables (IFCT) and USDA food data.",
+  "idli": {
+    "unit": "piece",
+    "k": 35,
+    "p": 30,
+    "na": 60,
+    "fluid": 0,
+    "alias": [
+      "idli",
+      "idly",
+      "idlis"
+    ]
+  },
+  "dosa": {
+    "unit": "piece",
+    "k": 90,
+    "p": 70,
+    "na": 150,
+    "fluid": 0,
+    "alias": [
+      "dosa",
+      "dosai",
+      "dosas",
+      "plain dosa",
+      "masala dosa"
+    ]
+  },
+  "uttapam": {
+    "unit": "piece",
+    "k": 110,
+    "p": 85,
+    "na": 180,
+    "fluid": 0,
+    "alias": [
+      "uttapam",
+      "uthappam",
+      "onion uthappam"
+    ]
+  },
+  "appam": {
+    "unit": "piece",
+    "k": 60,
+    "p": 45,
+    "na": 80,
+    "fluid": 0,
+    "alias": [
+      "appam",
+      "aappam"
+    ]
+  },
+  "paniyaram": {
+    "unit": "4 pieces",
+    "k": 95,
+    "p": 75,
+    "na": 140,
+    "fluid": 0,
+    "alias": [
+      "paniyaram",
+      "kuzhi paniyaram"
+    ]
+  },
+  "white rice": {
+    "unit": "cup (cooked)",
+    "k": 55,
+    "p": 70,
+    "na": 2,
+    "fluid": 0,
+    "alias": [
+      "rice",
+      "white rice",
+      "sadam",
+      "chawal",
+      "steamed rice",
+      "cooked rice",
+      "plain rice"
+    ]
+  },
+  "brown rice": {
+    "unit": "cup (cooked)",
+    "k": 84,
+    "p": 160,
+    "na": 5,
+    "fluid": 0,
+    "alias": [
+      "brown rice",
+      "matta rice"
+    ]
+  },
+  "basmati rice": {
+    "unit": "cup (cooked)",
+    "k": 60,
+    "p": 75,
+    "na": 2,
+    "fluid": 0,
+    "alias": [
+      "basmati rice",
+      "basmati"
+    ]
+  },
+  "curd rice": {
+    "unit": "bowl",
+    "k": 180,
+    "p": 140,
+    "na": 150,
+    "fluid": 60,
+    "alias": [
+      "curd rice",
+      "thayir sadam",
+      "dahi chawal"
+    ]
+  },
+  "lemon rice": {
+    "unit": "bowl",
+    "k": 90,
+    "p": 60,
+    "na": 350,
+    "fluid": 0,
+    "alias": [
+      "lemon rice",
+      "chitranna",
+      "elamichai sadam"
+    ]
+  },
+  "tamarind rice": {
+    "unit": "bowl",
+    "k": 130,
+    "p": 80,
+    "na": 420,
+    "fluid": 0,
+    "alias": [
+      "tamarind rice",
+      "puliyodarai",
+      "pulihora"
+    ]
+  },
+  "pongal": {
+    "unit": "bowl",
+    "k": 180,
+    "p": 120,
+    "na": 150,
+    "fluid": 0,
+    "alias": [
+      "pongal",
+      "ven pongal",
+      "khara pongal"
+    ]
+  },
+  "khichdi": {
+    "unit": "bowl",
+    "k": 210,
+    "p": 130,
+    "na": 280,
+    "fluid": 50,
+    "alias": [
+      "khichdi",
+      "khichuri",
+      "dal khichdi"
+    ]
+  },
+  "veg biryani": {
+    "unit": "plate",
+    "k": 280,
+    "p": 140,
+    "na": 450,
+    "fluid": 50,
+    "alias": [
+      "veg biryani",
+      "vegetable biryani",
+      "veg pulao",
+      "pulao"
+    ]
+  },
+  "chicken biryani": {
+    "unit": "plate",
+    "k": 360,
+    "p": 220,
+    "na": 580,
+    "fluid": 80,
+    "alias": [
+      "chicken biryani",
+      "biryani",
+      "biriyani"
+    ]
+  },
+  "mutton biryani": {
+    "unit": "plate",
+    "k": 340,
+    "p": 230,
+    "na": 560,
+    "fluid": 80,
+    "alias": [
+      "mutton biryani"
+    ]
+  },
+  "upma": {
+    "unit": "bowl",
+    "k": 85,
+    "p": 70,
+    "na": 280,
+    "fluid": 0,
+    "alias": [
+      "upma",
+      "uppuma",
+      "rava upma"
+    ]
+  },
+  "poha": {
+    "unit": "bowl",
+    "k": 120,
+    "p": 80,
+    "na": 200,
+    "fluid": 0,
+    "alias": [
+      "poha",
+      "aval",
+      "flattened rice",
+      "kanda poha"
+    ]
+  },
+  "semiya": {
+    "unit": "bowl",
+    "k": 75,
+    "p": 60,
+    "na": 180,
+    "fluid": 0,
+    "alias": [
+      "semiya",
+      "vermicelli",
+      "semiya upma"
+    ]
+  },
+  "chapati": {
+    "unit": "piece",
+    "k": 95,
+    "p": 80,
+    "na": 120,
+    "fluid": 0,
+    "alias": [
+      "chapati",
+      "roti",
+      "chapathi",
+      "phulka",
+      "rotis",
+      "chapatis"
+    ]
+  },
+  "paratha": {
+    "unit": "piece",
+    "k": 120,
+    "p": 100,
+    "na": 200,
+    "fluid": 0,
+    "alias": [
+      "paratha",
+      "parotta",
+      "aloo paratha",
+      "parathas"
+    ]
+  },
+  "puri": {
+    "unit": "piece",
+    "k": 60,
+    "p": 40,
+    "na": 100,
+    "fluid": 0,
+    "alias": [
+      "puri",
+      "poori",
+      "puris",
+      "pooris"
+    ]
+  },
+  "naan": {
+    "unit": "piece",
+    "k": 80,
+    "p": 75,
+    "na": 240,
+    "fluid": 0,
+    "alias": [
+      "naan",
+      "butter naan",
+      "garlic naan",
+      "tandoori roti"
+    ]
+  },
+  "bread": {
+    "unit": "slice",
+    "k": 35,
+    "p": 28,
+    "na": 130,
+    "fluid": 0,
+    "alias": [
+      "bread",
+      "white bread",
+      "toast",
+      "bread slice",
+      "slices of bread"
+    ]
+  },
+  "brown bread": {
+    "unit": "slice",
+    "k": 60,
+    "p": 55,
+    "na": 120,
+    "fluid": 0,
+    "alias": [
+      "brown bread",
+      "whole wheat bread",
+      "multigrain bread"
+    ]
+  },
+  "oats": {
+    "unit": "bowl",
+    "k": 110,
+    "p": 130,
+    "na": 5,
+    "fluid": 100,
+    "alias": [
+      "oats",
+      "oatmeal",
+      "porridge"
+    ]
+  },
+  "ragi mudde": {
+    "unit": "ball",
+    "k": 140,
+    "p": 110,
+    "na": 10,
+    "fluid": 0,
+    "alias": [
+      "ragi mudde",
+      "ragi ball",
+      "ragi kali"
+    ]
+  },
+  "jowar roti": {
+    "unit": "piece",
+    "k": 110,
+    "p": 90,
+    "na": 5,
+    "fluid": 0,
+    "alias": [
+      "jowar roti",
+      "sorghum roti",
+      "bhakar"
+    ]
+  },
+  "pasta": {
+    "unit": "bowl",
+    "k": 70,
+    "p": 85,
+    "na": 180,
+    "fluid": 0,
+    "alias": [
+      "pasta",
+      "macaroni",
+      "spaghetti"
+    ]
+  },
+  "noodles": {
+    "unit": "bowl",
+    "k": 65,
+    "p": 60,
+    "na": 380,
+    "fluid": 0,
+    "alias": [
+      "noodles",
+      "maggi",
+      "chowmein"
+    ]
+  },
+  "sandwich": {
+    "unit": "piece",
+    "k": 150,
+    "p": 110,
+    "na": 350,
+    "fluid": 0,
+    "alias": [
+      "sandwich",
+      "veg sandwich",
+      "toast sandwich"
+    ]
+  },
+  "pizza": {
+    "unit": "slice",
+    "k": 180,
+    "p": 160,
+    "na": 480,
+    "fluid": 0,
+    "alias": [
+      "pizza",
+      "pizza slice"
+    ]
+  },
+  "sambar": {
+    "unit": "bowl / cup",
+    "k": 380,
+    "p": 120,
+    "na": 420,
+    "fluid": 150,
+    "alias": [
+      "sambar",
+      "sambhar"
+    ]
+  },
+  "rasam": {
+    "unit": "bowl / cup",
+    "k": 250,
+    "p": 50,
+    "na": 380,
+    "fluid": 180,
+    "alias": [
+      "rasam"
+    ]
+  },
+  "dal": {
+    "unit": "bowl",
+    "k": 370,
+    "p": 160,
+    "na": 300,
+    "fluid": 150,
+    "alias": [
+      "dal",
+      "dhal",
+      "paruppu",
+      "toor dal",
+      "moong dal",
+      "tadka dal",
+      "yellow dal"
+    ]
+  },
+  "dal makhani": {
+    "unit": "bowl",
+    "k": 420,
+    "p": 190,
+    "na": 450,
+    "fluid": 120,
+    "alias": [
+      "dal makhani",
+      "makhani dal"
+    ]
+  },
+  "chickpeas": {
+    "unit": "100g / bowl",
+    "k": 290,
+    "p": 168,
+    "na": 24,
+    "fluid": 0,
+    "alias": [
+      "chick peas",
+      "chickpeas",
+      "chickpea",
+      "chana",
+      "chole",
+      "sundal",
+      "channa",
+      "garbanzo",
+      "kondakadalai",
+      "kadalai",
+      "boiled chana"
+    ]
+  },
+  "rajma": {
+    "unit": "bowl",
+    "k": 405,
+    "p": 140,
+    "na": 30,
+    "fluid": 50,
+    "alias": [
+      "rajma",
+      "kidney beans",
+      "rajma curry"
+    ]
+  },
+  "soya chunks": {
+    "unit": "cup (cooked)",
+    "k": 510,
+    "p": 240,
+    "na": 15,
+    "fluid": 0,
+    "alias": [
+      "soya",
+      "soya chunks",
+      "soybean",
+      "mealmaker",
+      "soy chunks"
+    ]
+  },
+  "green peas": {
+    "unit": "cup",
+    "k": 240,
+    "p": 110,
+    "na": 5,
+    "fluid": 0,
+    "alias": [
+      "green peas",
+      "matar",
+      "peas"
+    ]
+  },
+  "moong sprouts": {
+    "unit": "cup",
+    "k": 190,
+    "p": 100,
+    "na": 8,
+    "fluid": 0,
+    "alias": [
+      "sprouts",
+      "moong sprouts",
+      "sprouted moong",
+      "sprout salad"
+    ]
+  },
+  "soup": {
+    "unit": "bowl",
+    "k": 220,
+    "p": 50,
+    "na": 480,
+    "fluid": 200,
+    "alias": [
+      "soup",
+      "veg soup",
+      "tomato soup",
+      "clear soup",
+      "chicken soup"
+    ]
+  },
+  "potato curry": {
+    "unit": "bowl",
+    "k": 520,
+    "p": 90,
+    "na": 380,
+    "fluid": 50,
+    "alias": [
+      "potato curry",
+      "potato",
+      "potatoes",
+      "urulai",
+      "aloo",
+      "aloo fry",
+      "potato fry"
+    ]
+  },
+  "sweet potato": {
+    "unit": "piece / cup",
+    "k": 440,
+    "p": 60,
+    "na": 40,
+    "fluid": 0,
+    "alias": [
+      "sweet potato",
+      "shakarkandi",
+      "sakkaraivalli"
+    ]
+  },
+  "spinach": {
+    "unit": "cup (cooked)",
+    "k": 480,
+    "p": 90,
+    "na": 120,
+    "fluid": 20,
+    "alias": [
+      "spinach",
+      "palak",
+      "keerai",
+      "saag",
+      "palak paneer"
+    ]
+  },
+  "tomato": {
+    "unit": "piece",
+    "k": 240,
+    "p": 25,
+    "na": 5,
+    "fluid": 30,
+    "alias": [
+      "tomato",
+      "tomatoes",
+      "thakkali"
+    ]
+  },
+  "onion": {
+    "unit": "piece",
+    "k": 150,
+    "p": 30,
+    "na": 4,
+    "fluid": 0,
+    "alias": [
+      "onion",
+      "onions",
+      "vengayam",
+      "pyaz"
+    ]
+  },
+  "carrot": {
+    "unit": "piece / cup",
+    "k": 230,
+    "p": 35,
+    "na": 40,
+    "fluid": 0,
+    "alias": [
+      "carrot",
+      "carrots",
+      "gajar"
+    ]
+  },
+  "cabbage": {
+    "unit": "cup",
+    "k": 150,
+    "p": 25,
+    "na": 18,
+    "fluid": 0,
+    "alias": [
+      "cabbage",
+      "patta gobhi",
+      "muttakos"
+    ]
+  },
+  "cauliflower": {
+    "unit": "cup",
+    "k": 180,
+    "p": 45,
+    "na": 30,
+    "fluid": 0,
+    "alias": [
+      "cauliflower",
+      "gobi",
+      "phool gobhi"
+    ]
+  },
+  "okra": {
+    "unit": "cup",
+    "k": 210,
+    "p": 50,
+    "na": 8,
+    "fluid": 0,
+    "alias": [
+      "okra",
+      "bhindi",
+      "ladyfinger",
+      "vendakkai",
+      "ladies finger"
+    ]
+  },
+  "brinjal": {
+    "unit": "cup",
+    "k": 200,
+    "p": 25,
+    "na": 5,
+    "fluid": 0,
+    "alias": [
+      "brinjal",
+      "eggplant",
+      "baingan",
+      "kathirikai",
+      "aubergine"
+    ]
+  },
+  "bottle gourd": {
+    "unit": "cup",
+    "k": 140,
+    "p": 20,
+    "na": 10,
+    "fluid": 50,
+    "alias": [
+      "bottle gourd",
+      "lauki",
+      "sorakkay",
+      "doodhi"
+    ]
+  },
+  "ridge gourd": {
+    "unit": "cup",
+    "k": 120,
+    "p": 18,
+    "na": 8,
+    "fluid": 40,
+    "alias": [
+      "ridge gourd",
+      "peerkangai",
+      "turai"
+    ]
+  },
+  "bitter gourd": {
+    "unit": "cup",
+    "k": 240,
+    "p": 35,
+    "na": 6,
+    "fluid": 0,
+    "alias": [
+      "bitter gourd",
+      "karela",
+      "pavakkai"
+    ]
+  },
+  "cucumber": {
+    "unit": "cup",
+    "k": 140,
+    "p": 20,
+    "na": 2,
+    "fluid": 60,
+    "alias": [
+      "cucumber",
+      "kheera",
+      "vellarikka"
+    ]
+  },
+  "beetroot": {
+    "unit": "cup",
+    "k": 320,
+    "p": 40,
+    "na": 65,
+    "fluid": 0,
+    "alias": [
+      "beetroot",
+      "chukandar"
+    ]
+  },
+  "capsicum": {
+    "unit": "cup",
+    "k": 175,
+    "p": 25,
+    "na": 5,
+    "fluid": 0,
+    "alias": [
+      "capsicum",
+      "bell pepper",
+      "shimla mirch",
+      "peppers"
+    ]
+  },
+  "mushroom": {
+    "unit": "cup",
+    "k": 280,
+    "p": 85,
+    "na": 5,
+    "fluid": 0,
+    "alias": [
+      "mushroom",
+      "mushrooms",
+      "kalan",
+      "khumbi"
+    ]
+  },
+  "green beans": {
+    "unit": "cup",
+    "k": 190,
+    "p": 35,
+    "na": 6,
+    "fluid": 0,
+    "alias": [
+      "beans",
+      "green beans",
+      "french beans"
+    ]
+  },
+  "salad": {
+    "unit": "bowl",
+    "k": 190,
+    "p": 30,
+    "na": 25,
+    "fluid": 30,
+    "alias": [
+      "salad",
+      "green salad",
+      "kachumber"
+    ]
+  },
+  "banana": {
+    "unit": "piece",
+    "k": 420,
+    "p": 26,
+    "na": 1,
+    "fluid": 0,
+    "alias": [
+      "banana",
+      "bananas",
+      "vazhaipazham",
+      "kela"
+    ]
+  },
+  "apple": {
+    "unit": "piece",
+    "k": 195,
+    "p": 20,
+    "na": 2,
+    "fluid": 0,
+    "alias": [
+      "apple",
+      "apples",
+      "seb"
+    ]
+  },
+  "orange": {
+    "unit": "piece",
+    "k": 240,
+    "p": 25,
+    "na": 1,
+    "fluid": 80,
+    "alias": [
+      "orange",
+      "oranges",
+      "santara",
+      "kamala orange"
+    ]
+  },
+  "sweet lime": {
+    "unit": "piece",
+    "k": 210,
+    "p": 22,
+    "na": 1,
+    "fluid": 80,
+    "alias": [
+      "sweet lime",
+      "mosambi",
+      "mousambi"
+    ]
+  },
+  "papaya": {
+    "unit": "cup",
+    "k": 260,
+    "p": 15,
+    "na": 4,
+    "fluid": 50,
+    "alias": [
+      "papaya",
+      "pappali",
+      "papita"
+    ]
+  },
+  "guava": {
+    "unit": "piece",
+    "k": 280,
+    "p": 30,
+    "na": 3,
+    "fluid": 0,
+    "alias": [
+      "guava",
+      "koyyapazham",
+      "amrood"
+    ]
+  },
+  "mango": {
+    "unit": "cup / piece",
+    "k": 270,
+    "p": 20,
+    "na": 2,
+    "fluid": 50,
+    "alias": [
+      "mango",
+      "mangga",
+      "aam",
+      "mangoes"
+    ]
+  },
+  "watermelon": {
+    "unit": "wedge / cup",
+    "k": 170,
+    "p": 15,
+    "na": 2,
+    "fluid": 150,
+    "alias": [
+      "watermelon",
+      "tarbooj",
+      "thanneer mathan"
+    ]
+  },
+  "grapes": {
+    "unit": "cup",
+    "k": 240,
+    "p": 20,
+    "na": 3,
+    "fluid": 40,
+    "alias": [
+      "grapes",
+      "grape",
+      "angoor",
+      "draskha"
+    ]
+  },
+  "pomegranate": {
+    "unit": "cup",
+    "k": 380,
+    "p": 50,
+    "na": 4,
+    "fluid": 30,
+    "alias": [
+      "pomegranate",
+      "anar",
+      "mathulai"
+    ]
+  },
+  "pineapple": {
+    "unit": "cup",
+    "k": 180,
+    "p": 12,
+    "na": 2,
+    "fluid": 50,
+    "alias": [
+      "pineapple",
+      "ananas"
+    ]
+  },
+  "coconut water": {
+    "unit": "glass",
+    "k": 600,
+    "p": 40,
+    "na": 250,
+    "fluid": 250,
+    "alias": [
+      "coconut water",
+      "elaneer",
+      "tender coconut",
+      "nariyal pani"
+    ]
+  },
+  "milk": {
+    "unit": "glass",
+    "k": 350,
+    "p": 230,
+    "na": 120,
+    "fluid": 200,
+    "alias": [
+      "milk",
+      "paal",
+      "doodh",
+      "cow milk"
+    ]
+  },
+  "curd": {
+    "unit": "bowl",
+    "k": 230,
+    "p": 150,
+    "na": 60,
+    "fluid": 100,
+    "alias": [
+      "curd",
+      "yogurt",
+      "thayir",
+      "dahi"
+    ]
+  },
+  "buttermilk": {
+    "unit": "glass",
+    "k": 170,
+    "p": 90,
+    "na": 190,
+    "fluid": 200,
+    "alias": [
+      "buttermilk",
+      "moru",
+      "mor",
+      "chaas",
+      "chhas"
+    ]
+  },
+  "lassi": {
+    "unit": "glass",
+    "k": 300,
+    "p": 170,
+    "na": 80,
+    "fluid": 200,
+    "alias": [
+      "lassi",
+      "sweet lassi"
+    ]
+  },
+  "paneer": {
+    "unit": "piece / 50g",
+    "k": 100,
+    "p": 130,
+    "na": 20,
+    "fluid": 0,
+    "alias": [
+      "paneer",
+      "cottage cheese",
+      "paneer tikka"
+    ]
+  },
+  "cheese": {
+    "unit": "slice",
+    "k": 25,
+    "p": 140,
+    "na": 180,
+    "fluid": 0,
+    "alias": [
+      "cheese",
+      "cheddar",
+      "cheese slice"
+    ]
+  },
+  "tea": {
+    "unit": "cup",
+    "k": 90,
+    "p": 30,
+    "na": 30,
+    "fluid": 150,
+    "alias": [
+      "tea",
+      "chai",
+      "milk tea",
+      "black tea",
+      "green tea"
+    ]
+  },
+  "coffee": {
+    "unit": "cup",
+    "k": 120,
+    "p": 30,
+    "na": 30,
+    "fluid": 150,
+    "alias": [
+      "coffee",
+      "kaapi",
+      "filter coffee",
+      "black coffee"
+    ]
+  },
+  "water": {
+    "unit": "glass",
+    "k": 0,
+    "p": 0,
+    "na": 5,
+    "fluid": 200,
+    "alias": [
+      "water",
+      "thanni",
+      "pani"
+    ]
+  },
+  "juice": {
+    "unit": "glass",
+    "k": 400,
+    "p": 30,
+    "na": 10,
+    "fluid": 200,
+    "alias": [
+      "juice",
+      "fruit juice",
+      "orange juice",
+      "apple juice"
+    ]
+  },
+  "egg": {
+    "unit": "piece",
+    "k": 68,
+    "p": 95,
+    "na": 70,
+    "fluid": 0,
+    "alias": [
+      "egg",
+      "eggs",
+      "whole egg",
+      "boiled egg",
+      "muttai",
+      "anda",
+      "egg curry",
+      "omelette",
+      "omelet",
+      "scrambled egg"
+    ]
+  },
+  "egg white": {
+    "unit": "piece",
+    "k": 50,
+    "p": 5,
+    "na": 55,
+    "fluid": 0,
+    "alias": [
+      "egg white",
+      "egg whites",
+      "muttai vellai"
+    ]
+  },
+  "chicken curry": {
+    "unit": "bowl",
+    "k": 320,
+    "p": 190,
+    "na": 450,
+    "fluid": 80,
+    "alias": [
+      "chicken curry",
+      "chicken",
+      "kozhi",
+      "chicken breast",
+      "tandoori chicken",
+      "butter chicken"
+    ]
+  },
+  "fish curry": {
+    "unit": "bowl",
+    "k": 380,
+    "p": 250,
+    "na": 400,
+    "fluid": 100,
+    "alias": [
+      "fish curry",
+      "fish",
+      "meen",
+      "fried fish",
+      "salmon",
+      "fish fry"
+    ]
+  },
+  "mutton curry": {
+    "unit": "bowl",
+    "k": 280,
+    "p": 200,
+    "na": 420,
+    "fluid": 80,
+    "alias": [
+      "mutton curry",
+      "mutton",
+      "lamb",
+      "goat meat"
+    ]
+  },
+  "prawns": {
+    "unit": "serving",
+    "k": 220,
+    "p": 210,
+    "na": 320,
+    "fluid": 0,
+    "alias": [
+      "prawns",
+      "shrimp",
+      "eraal",
+      "jhinga"
+    ]
+  },
+  "peanuts": {
+    "unit": "handful / 30g",
+    "k": 200,
+    "p": 110,
+    "na": 5,
+    "fluid": 0,
+    "alias": [
+      "peanuts",
+      "peanut",
+      "groundnut",
+      "verkadalai",
+      "mungfali",
+      "roasted peanuts"
+    ]
+  },
+  "almonds": {
+    "unit": "handful / 10 pcs",
+    "k": 180,
+    "p": 120,
+    "na": 1,
+    "fluid": 0,
+    "alias": [
+      "almonds",
+      "almond",
+      "badam"
+    ]
+  },
+  "cashews": {
+    "unit": "handful / 10 pcs",
+    "k": 160,
+    "p": 130,
+    "na": 4,
+    "fluid": 0,
+    "alias": [
+      "cashews",
+      "cashew",
+      "kaju"
+    ]
+  },
+  "vada": {
+    "unit": "piece",
+    "k": 140,
+    "p": 90,
+    "na": 200,
+    "fluid": 0,
+    "alias": [
+      "vada",
+      "vadai",
+      "medu vada",
+      "masala vada"
+    ]
+  },
+  "samosa": {
+    "unit": "piece",
+    "k": 190,
+    "p": 65,
+    "na": 280,
+    "fluid": 0,
+    "alias": [
+      "samosa",
+      "samosas"
+    ]
+  },
+  "tomato chutney": {
+    "unit": "spoon",
+    "k": 120,
+    "p": 15,
+    "na": 150,
+    "fluid": 10,
+    "alias": [
+      "tomato chutney",
+      "chutney"
+    ]
+  },
+  "coconut chutney": {
+    "unit": "spoon",
+    "k": 80,
+    "p": 35,
+    "na": 160,
+    "fluid": 10,
+    "alias": [
+      "coconut chutney",
+      "white chutney"
+    ]
+  },
+  "pickle": {
+    "unit": "spoon",
+    "k": 40,
+    "p": 10,
+    "na": 600,
+    "fluid": 0,
+    "alias": [
+      "pickle",
+      "achar",
+      "oorugai"
+    ]
+  },
+  "biscuits": {
+    "unit": "2 pieces",
+    "k": 45,
+    "p": 35,
+    "na": 110,
+    "fluid": 0,
+    "alias": [
+      "biscuit",
+      "biscuits",
+      "cookie",
+      "cookies"
+    ]
+  }
+}

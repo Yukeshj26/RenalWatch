@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  }
+}
+
+/* Water drop logo element */
+.logo-drop {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  background: #0F7C8A;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  position: relative;
+  animation: bob 3s ease-in-out infinite;
+}
+.logo-drop::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  top: 5px;
+  left: 5px;
+}
+
+@keyframes bob {
+  0%, 100% { transform: rotate(-45deg) translateY(0); }
+  50% { transform: rotate(-45deg) translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
