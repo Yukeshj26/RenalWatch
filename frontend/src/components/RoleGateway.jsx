@@ -5,315 +5,524 @@ import {
   Sparkles,
   ShieldAlert,
   ArrowRight,
-  Activity,
-  Utensils,
-  HeartPulse,
-  Clock,
-  UserCheck,
+  Phone,
+  Lock,
+  Mail,
+  Building2,
   CheckCircle2,
   Users,
-  AlertTriangle,
-  Lock,
+  UserPlus,
+  AlertCircle,
 } from 'lucide-react';
 
 export default function RoleGateway({
   patients,
   onEnterAsPatient,
   onEnterAsClinician,
-  onOpenLoginModal,
   onOpenRegisterModal,
   onOpenSafetyModal,
 }) {
-  const [selectedPatientId, setSelectedPatientId] = useState(patients[0]?.id || 1);
-  const [loadingPatient, setLoadingPatient] = useState(false);
-  const [loadingClinician, setLoadingClinician] = useState(false);
+  // Active role tab: 'patient' | 'clinic'
+  const [activeRole, setActiveRole] = useState('patient');
 
-  async function handleQuickDemoPatientEnter() {
-    setLoadingPatient(true);
+  // Patient Login Form state
+  const [patientPhone, setPatientPhone] = useState('');
+  const [patientPassword, setPatientPassword] = useState('1234');
+  const [selectedDemoPatientId, setSelectedDemoPatientId] = useState(patients[0]?.id || 1);
+  const [patientLoading, setPatientLoading] = useState(false);
+  const [patientError, setPatientError] = useState(null);
+
+  // Clinic Management Login Form state
+  const [clinicStaffId, setClinicStaffId] = useState('dr.ashwin@renalwatch.care');
+  const [clinicPasscode, setClinicPasscode] = useState('1234');
+  const [clinicLoading, setClinicLoading] = useState(false);
+  const [clinicError, setClinicError] = useState(null);
+
+  // Handle standard patient login with phone & password
+  async function handlePatientPhoneSubmit(e) {
+    e.preventDefault();
+    if (!patientPhone.trim()) return;
+
+    setPatientLoading(true);
+    setPatientError(null);
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'patient', patient_id: parseInt(selectedPatientId, 10) }),
+        body: JSON.stringify({
+          role: 'patient',
+          phone: patientPhone.trim(),
+          password: patientPassword,
+        }),
       });
+
       const data = await res.json();
-      if (res.ok) {
-        onEnterAsPatient(data);
+      if (!res.ok) {
+        throw new Error(data.detail || 'Invalid patient phone or password');
       }
+      onEnterAsPatient(data);
     } catch (err) {
-      console.error('Quick login failed:', err);
+      setPatientError(err.message || 'Login failed');
     } finally {
-      setLoadingPatient(false);
+      setPatientLoading(false);
     }
   }
 
-  async function handleClinicianEnter() {
-    setLoadingClinician(true);
+  // Handle 1-click quick demo patient login
+  async function handleQuickDemoPatientSubmit() {
+    setPatientLoading(true);
+    setPatientError(null);
+
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: 'clinician' }),
+        body: JSON.stringify({
+          role: 'patient',
+          patient_id: parseInt(selectedDemoPatientId, 10),
+        }),
       });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Demo login failed');
+      }
+      onEnterAsPatient(data);
+    } catch (err) {
+      setPatientError(err.message || 'Demo login failed');
+    } finally {
+      setPatientLoading(false);
+    }
+  }
+
+  // Handle clinic management login with staff ID & passcode
+  async function handleClinicSubmit(e) {
+    e.preventDefault();
+    setClinicLoading(true);
+    setClinicError(null);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: 'clinician',
+          staff_id: clinicStaffId.trim(),
+          password: clinicPasscode,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Invalid clinic credentials');
+      }
+      onEnterAsClinician(data);
+    } catch (err) {
+      setClinicError(err.message || 'Clinic login failed');
+    } finally {
+      setClinicLoading(false);
+    }
+  }
+
+  // Handle 1-click quick clinic access
+  async function handleQuickClinicEnter() {
+    setClinicLoading(true);
+    setClinicError(null);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: 'clinician',
+          staff_id: 'Dr. Nephrology (Unit Lead)',
+          password: '1234',
+        }),
+      });
+
       const data = await res.json();
       if (res.ok) {
         onEnterAsClinician(data);
       }
     } catch (err) {
-      console.error('Clinician login failed:', err);
+      setClinicError('Failed to enter clinic management');
     } finally {
-      setLoadingClinician(false);
+      setClinicLoading(false);
     }
   }
 
   return (
-    <div className="pt-24 pb-20 px-4 sm:px-8 max-w-6xl mx-auto space-y-12 animate-fadeSlideUp">
-      {/* Intro Hero Section */}
-      <div className="text-center max-w-3xl mx-auto space-y-4">
+    <div className="pt-24 pb-20 px-4 sm:px-8 max-w-4xl mx-auto space-y-8 animate-fadeSlideUp">
+      {/* Intro Header */}
+      <div className="text-center max-w-2xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-tint text-teal-dark text-xs font-semibold tracking-wide border border-teal/20 shadow-xs">
           <span className="w-2 h-2 rounded-full bg-teal animate-pulse" />
           RenalWatch Dialysis Care Ecosystem
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-ink tracking-tight leading-tight">
-          How would you like to enter{' '}
-          <span className="text-teal underline decoration-teal/30 underline-offset-4">RenalWatch</span>?
+        <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-ink tracking-tight">
+          Select Role &amp; Enter Credentials
         </h1>
 
-        <p className="text-base sm:text-lg text-mute leading-relaxed">
-          Choose your personalized portal to access targeted tools. Patients get private health tracking and diet guidance; clinicians get multi-patient cohort triage.
+        <p className="text-sm sm:text-base text-mute">
+          Choose whether you are logging in as a <strong>Dialysis Patient</strong> or for <strong>Clinic Management</strong> to access your dedicated portal.
         </p>
       </div>
 
-      {/* Two Portal Selection Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-        {/* CARD 1: PATIENT PORTAL */}
-        <div className="relative rounded-3xl bg-white border-2 border-line hover:border-teal/50 shadow-lg hover:shadow-xl transition-all duration-300 p-7 sm:p-8 flex flex-col justify-between group">
-          {/* Subtle top indicator */}
-          <div className="absolute -top-3.5 left-7 px-3 py-1 rounded-full bg-teal text-white text-[11px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
-            <User size={13} /> For Dialysis Patients
-          </div>
-
-          <div className="space-y-6 pt-2">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-tint flex items-center justify-center text-teal mb-4 group-hover:scale-105 transition-transform">
-                  <HeartPulse size={28} />
-                </div>
-                <h2 className="text-2xl font-heading font-bold text-ink">
-                  Patient Health Portal
-                </h2>
-                <p className="text-sm text-mute mt-1">
-                  Private &amp; personalized daily self-management companion for individuals on hemodialysis.
-                </p>
-              </div>
+      {/* Main Authentication Card */}
+      <div className="bg-white rounded-3xl border-2 border-line shadow-xl overflow-hidden">
+        {/* Role Selection Tabs */}
+        <div className="grid grid-cols-2 p-2 bg-tint-light border-b border-line gap-2">
+          {/* Patient Role Button */}
+          <button
+            type="button"
+            onClick={() => { setActiveRole('patient'); setPatientError(null); }}
+            className={`flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-200 ${
+              activeRole === 'patient'
+                ? 'bg-white text-teal shadow-md border border-teal/20'
+                : 'text-mute hover:text-ink hover:bg-white/60'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${activeRole === 'patient' ? 'bg-tint text-teal' : 'bg-line/40 text-mute'}`}>
+              <User size={18} />
             </div>
-
-            {/* Feature List */}
-            <div className="space-y-3 pt-2 border-t border-line">
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">Personal Vitals &amp; Weight Tracking:</strong>{' '}
-                  <span className="text-mute">Daily weight logging vs dry weight to prevent fluid overload (IDWG%).</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">Indian Food &amp; Nutrient Scanner:</strong>{' '}
-                  <span className="text-mute">Deterministic IFCT potassium, phosphorus, sodium and fluid tracking.</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">Dialysis Schedule Countdown:</strong>{' '}
-                  <span className="text-mute">Live session countdown and personalized diet limits.</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">Safety Firewall &amp; Red-Flag Warnings:</strong>{' '}
-                  <span className="text-mute">Immediate instructions for chest pain or shortness of breath.</span>
-                </div>
-              </div>
+            <div className="text-left">
+              <span className="block leading-tight font-extrabold">Patient Portal</span>
+              <span className="text-[10px] font-medium opacity-75 hidden sm:block">Personal Health Self-Monitoring</span>
             </div>
-          </div>
+          </button>
 
-          {/* Action Area */}
-          <div className="pt-6 mt-6 border-t border-line space-y-4">
-            {/* Quick Demo Persona Dropdown */}
-            <div className="p-3.5 rounded-2xl bg-tint-light border border-teal/20 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-teal-dark flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-teal" /> 1-Click Demo Patient Login
+          {/* Clinic Management Role Button */}
+          <button
+            type="button"
+            onClick={() => { setActiveRole('clinic'); setClinicError(null); }}
+            className={`flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-200 ${
+              activeRole === 'clinic'
+                ? 'bg-white text-teal shadow-md border border-teal/20'
+                : 'text-mute hover:text-ink hover:bg-white/60'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${activeRole === 'clinic' ? 'bg-tint text-teal' : 'bg-line/40 text-mute'}`}>
+              <Building2 size={18} />
+            </div>
+            <div className="text-left">
+              <span className="block leading-tight font-extrabold">Clinic Management</span>
+              <span className="text-[10px] font-medium opacity-75 hidden sm:block">Cohort Triage &amp; Dialysis Unit</span>
+            </div>
+          </button>
+        </div>
+
+        {/* Dynamic Form Area */}
+        <div className="p-6 sm:p-8">
+          {activeRole === 'patient' ? (
+            /* ================= PATIENT CREDENTIALS FORM ================= */
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <div>
+                  <h3 className="font-heading font-bold text-lg text-ink flex items-center gap-2">
+                    <User size={20} className="text-teal" />
+                    Patient Sign In
+                  </h3>
+                  <p className="text-xs text-mute mt-0.5">
+                    Log in with your registered phone number to access your personal dashboard.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-tint text-teal-dark uppercase tracking-wide">
+                  Patient Role
                 </span>
-                <span className="text-[10px] uppercase font-semibold text-mute">Instant Access</span>
               </div>
-              <div className="flex gap-2">
-                <select
-                  value={selectedPatientId}
-                  onChange={e => setSelectedPatientId(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded-xl border border-line bg-white text-xs text-ink font-medium outline-none focus:border-teal"
-                >
-                  {patients.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.level.toUpperCase()} Risk · {p.score})
-                    </option>
-                  ))}
-                </select>
+
+              {/* 1-Click Demo Patient Quick Selector */}
+              <div className="p-4 rounded-2xl bg-tint-light border border-teal/25 space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-teal-dark flex items-center gap-1.5">
+                    <Sparkles size={15} className="text-teal" /> 1-Click Instant Demo Login
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-mute bg-white px-2 py-0.5 rounded-full border border-teal/15">
+                    For Evaluators
+                  </span>
+                </div>
+                <p className="text-xs text-mute">
+                  Choose any seeded patient persona to enter their personalized portal immediately:
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <select
+                    value={selectedDemoPatientId}
+                    onChange={e => setSelectedDemoPatientId(e.target.value)}
+                    className="flex-1 px-3 py-2.5 rounded-xl border border-line bg-white text-xs text-ink font-semibold outline-none focus:border-teal"
+                  >
+                    {patients.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} ({p.level.toUpperCase()} Risk · Score {p.score} · Age {p.age})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleQuickDemoPatientSubmit}
+                    disabled={patientLoading}
+                    className="px-5 py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white text-xs font-bold shadow-sm transition-all whitespace-nowrap flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  >
+                    {patientLoading ? 'Loading...' : 'Enter as Demo Patient'}
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-line" />
+                <span className="flex-shrink mx-3 text-xs text-mute uppercase font-bold tracking-wider">
+                  Or Log In with Credentials
+                </span>
+                <div className="flex-grow border-t border-line" />
+              </div>
+
+              {/* Standard Patient Credentials Form */}
+              <form onSubmit={handlePatientPhoneSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+                    Registered Mobile Number or Patient Name
+                  </label>
+                  <div className="relative">
+                    <Phone size={16} className="absolute left-3.5 top-3.5 text-mute" />
+                    <input
+                      type="text"
+                      value={patientPhone}
+                      onChange={e => setPatientPhone(e.target.value)}
+                      placeholder="e.g. +91-9876500001 or Arun K"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-mute">
+                      PIN or Password
+                    </label>
+                    <span className="text-[11px] text-teal-dark font-medium">Default PIN: 1234</span>
+                  </div>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3.5 top-3.5 text-mute" />
+                    <input
+                      type="password"
+                      value={patientPassword}
+                      onChange={e => setPatientPassword(e.target.value)}
+                      placeholder="Enter PIN"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                    />
+                  </div>
+                </div>
+
+                {patientError && (
+                  <div className="p-3 rounded-xl bg-risk-highBg border border-risk-high/30 text-risk-high text-xs flex items-center gap-2">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{patientError}</span>
+                  </div>
+                )}
+
                 <button
-                  onClick={handleQuickDemoPatientEnter}
-                  disabled={loadingPatient}
-                  className="px-4 py-2 rounded-xl bg-teal hover:bg-teal-dark text-white text-xs font-semibold shadow-sm transition-all whitespace-nowrap flex items-center gap-1.5 disabled:opacity-50"
+                  type="submit"
+                  disabled={patientLoading}
+                  className="w-full py-3.5 rounded-xl bg-teal hover:bg-teal-dark text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {loadingPatient ? 'Entering...' : 'Enter Portal'}
+                  {patientLoading ? 'Authenticating...' : 'Sign In to Patient Portal'}
+                  <ArrowRight size={16} />
+                </button>
+
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={onOpenRegisterModal}
+                    className="text-xs text-teal hover:underline font-semibold inline-flex items-center gap-1"
+                  >
+                    <UserPlus size={13} />
+                    First time dialysis patient? Register your profile here &rarr;
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            /* ================= CLINIC MANAGEMENT CREDENTIALS FORM ================= */
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <div>
+                  <h3 className="font-heading font-bold text-lg text-ink flex items-center gap-2">
+                    <Building2 size={20} className="text-teal" />
+                    Clinic Management Authentication
+                  </h3>
+                  <p className="text-xs text-mute mt-0.5">
+                    Access the central hemodialysis triage queue, interdialytic alerts, and patient charts.
+                  </p>
+                </div>
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-ink text-white uppercase tracking-wide">
+                  Clinic Staff
+                </span>
+              </div>
+
+              {/* 1-Click Instant Clinic Access */}
+              <div className="p-4 rounded-2xl bg-tint-light border border-teal/25 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-teal-dark flex items-center gap-1.5">
+                    <Sparkles size={15} className="text-teal" /> 1-Click Instant Clinic Lead Access
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-mute bg-white px-2 py-0.5 rounded-full border border-teal/15">
+                    Lead Nephrologist
+                  </span>
+                </div>
+                <p className="text-xs text-mute">
+                  Instantly open the triage monitoring dashboard for all active patients:
+                </p>
+                <button
+                  type="button"
+                  onClick={handleQuickClinicEnter}
+                  disabled={clinicLoading}
+                  className="w-full py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {clinicLoading ? 'Opening Dashboard...' : 'Enter as Dr. Nephrology (Care Lead)'}
                   <ArrowRight size={14} />
                 </button>
               </div>
-            </div>
 
-            {/* Standard Login / Register Buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => onOpenLoginModal('patient')}
-                className="w-full py-2.5 px-3 rounded-xl border border-teal/30 hover:border-teal hover:bg-tint text-teal-dark text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-              >
-                <Lock size={14} />
-                Sign In with Mobile / PIN
-              </button>
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-line" />
+                <span className="flex-shrink mx-3 text-xs text-mute uppercase font-bold tracking-wider">
+                  Or Log In with Staff Passcode
+                </span>
+                <div className="flex-grow border-t border-line" />
+              </div>
 
-              <button
-                onClick={onOpenRegisterModal}
-                className="w-full py-2.5 px-3 rounded-xl bg-white border border-line hover:border-teal/40 text-ink text-xs font-bold hover:bg-bg transition-all flex items-center justify-center gap-1.5"
-              >
-                <UserCheck size={14} className="text-teal" />
-                Register New Patient
-              </button>
+              {/* Clinic Credentials Form */}
+              <form onSubmit={handleClinicSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-mute mb-1">
+                    Staff ID / Official Hospital Email
+                  </label>
+                  <div className="relative">
+                    <Mail size={16} className="absolute left-3.5 top-3.5 text-mute" />
+                    <input
+                      type="text"
+                      value={clinicStaffId}
+                      onChange={e => setClinicStaffId(e.target.value)}
+                      placeholder="e.g. dr.ashwin@renalwatch.care or clinical-lead"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-mute">
+                      Clinic Access Key / Passcode
+                    </label>
+                    <span className="text-[11px] text-teal-dark font-medium">Default Passcode: 1234</span>
+                  </div>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3.5 top-3.5 text-mute" />
+                    <input
+                      type="password"
+                      value={clinicPasscode}
+                      onChange={e => setClinicPasscode(e.target.value)}
+                      placeholder="Enter Passcode (1234)"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                    />
+                  </div>
+                </div>
+
+                {clinicError && (
+                  <div className="p-3 rounded-xl bg-risk-highBg border border-risk-high/30 text-risk-high text-xs flex items-center gap-2">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{clinicError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={clinicLoading}
+                  className="w-full py-3.5 rounded-xl bg-teal hover:bg-teal-dark text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {clinicLoading ? 'Verifying...' : 'Log In to Clinic Management Dashboard'}
+                  <ArrowRight size={16} />
+                </button>
+              </form>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* CARD 2: CLINICIAN PORTAL */}
-        <div className="relative rounded-3xl bg-white border-2 border-line hover:border-teal/50 shadow-lg hover:shadow-xl transition-all duration-300 p-7 sm:p-8 flex flex-col justify-between group">
-          {/* Subtle top indicator */}
-          <div className="absolute -top-3.5 left-7 px-3 py-1 rounded-full bg-ink text-white text-[11px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1.5">
-            <Stethoscope size={13} className="text-teal" /> For Care Team &amp; Nephrology
-          </div>
-
-          <div className="space-y-6 pt-2">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="w-14 h-14 rounded-2xl bg-teal/10 flex items-center justify-center text-teal-dark mb-4 group-hover:scale-105 transition-transform">
-                  <Stethoscope size={28} />
+        {/* Feature Highlights Footer inside Card */}
+        <div className="px-6 sm:px-8 py-4 bg-bg border-t border-line">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-mute block mb-2">
+            {activeRole === 'patient' ? 'What you can do in Patient Portal:' : 'What you can do in Clinic Management:'}
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-mute">
+            {activeRole === 'patient' ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>Log weight vs dry weight (IDWG% auto-calculated)</span>
                 </div>
-                <h2 className="text-2xl font-heading font-bold text-ink">
-                  Clinician &amp; Care Team Portal
-                </h2>
-                <p className="text-sm text-mute mt-1">
-                  Centralized multi-patient cohort triage &amp; early-warning surveillance for dialysis centers.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature List */}
-            <div className="space-y-3 pt-2 border-t border-line">
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">Ranked Urgency Queue (0–100):</strong>{' '}
-                  <span className="text-mute">Sorts active patients by weight gain, potassium spikes, and missed sessions.</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>IFCT-verified Indian meal nutrient tracker</span>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">Proactive Interdialytic Outreach:</strong>{' '}
-                  <span className="text-mute">Provides one-line clinical reason for each flag to trigger timely phone check-ins.</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>Next dialysis session countdown &amp; fluid limits</span>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">7-Day Sparklines &amp; Lab Histories:</strong>{' '}
-                  <span className="text-mute">Inspect individual patient trajectories, BP records, and food logs.</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>Real-time AI symptom &amp; signal detection in notes</span>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-3 text-xs text-ink">
-                <CheckCircle2 size={16} className="text-teal shrink-0 mt-0.5" />
-                <div>
-                  <strong className="font-semibold text-ink">Dialysis Session Documentation:</strong>{' '}
-                  <span className="text-mute">Log completed sessions, post-dialysis weight, and reset risk baselines.</span>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>Ranked urgency queue (0–100 score) for telephone outreach</span>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Area */}
-          <div className="pt-6 mt-6 border-t border-line space-y-4">
-            <div className="p-3.5 rounded-2xl bg-bg border border-line text-xs text-mute flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Users size={16} className="text-teal" />
-                <span>Monitoring <strong>{patients.length}</strong> active dialysis patients</span>
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-risk-highBg text-risk-high font-bold text-[11px]">
-                {patients.filter(p => p.level === 'high').length} Urgent
-              </span>
-            </div>
-
-            <button
-              onClick={handleClinicianEnter}
-              disabled={loadingClinician}
-              className="w-full py-3.5 px-4 rounded-xl bg-teal hover:bg-teal-dark text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group-hover:bg-teal-dark"
-            >
-              {loadingClinician ? (
-                <span>Entering Clinician Portal...</span>
-              ) : (
-                <>
-                  <span>Enter Clinician Triage Dashboard</span>
-                  <ArrowRight size={17} className="group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-
-            <div className="text-center">
-              <span className="text-[11px] text-mute">
-                Authorized for Nephrologists, Dialysis Technicians, and Unit Staff Nurses
-              </span>
-            </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>Fluid overload &amp; potassium spike early detection</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>7-day lab trend sparklines &amp; session completion logs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-teal shrink-0" />
+                  <span>Hard-coded emergency safety rule firewall</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Safety & Protocol Banner */}
-      <div className="p-5 rounded-2xl bg-white border border-line shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Safety & Protocol Banner at bottom */}
+      <div className="p-4 rounded-2xl bg-white border border-line shadow-xs flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-risk-highBg text-risk-high flex items-center justify-center shrink-0">
-            <ShieldAlert size={20} />
+          <div className="w-9 h-9 rounded-xl bg-risk-highBg text-risk-high flex items-center justify-center shrink-0">
+            <ShieldAlert size={18} />
           </div>
           <div>
-            <h4 className="font-heading font-bold text-sm text-ink">
+            <h4 className="font-heading font-bold text-xs sm:text-sm text-ink">
               Clinical Safety &amp; Emergency Escalation Protocol
             </h4>
-            <p className="text-xs text-mute">
-              Deterministic red-flag detector with zero hallucination. Severe breathlessness or chest pain triggers immediate emergency instructions.
+            <p className="text-[11px] text-mute">
+              Deterministic red-flag safety detector. Breathlessness or chest pain triggers immediate emergency instructions.
             </p>
           </div>
         </div>
 
         <button
+          type="button"
           onClick={onOpenSafetyModal}
-          className="px-4 py-2 rounded-xl bg-tint text-teal-dark hover:bg-teal/15 text-xs font-bold transition-all whitespace-nowrap"
+          className="px-3.5 py-1.5 rounded-xl bg-tint text-teal-dark hover:bg-teal/15 text-xs font-bold transition-all whitespace-nowrap"
         >
-          Review Safety Rules &rarr;
+          Safety Rules &rarr;
         </button>
       </div>
     </div>

@@ -66,6 +66,8 @@ class RegisterBody(BaseModel):
 
 class LoginBody(BaseModel):
     phone: Optional[str] = None
+    email: Optional[str] = None
+    staff_id: Optional[str] = None
     password: Optional[str] = "1234"
     role: str = "patient"
     patient_id: Optional[int] = None
@@ -266,13 +268,16 @@ def register(body: RegisterBody):
 
 @app.post("/api/auth/login")
 def login(body: LoginBody):
-    """Login as a patient or clinician."""
-    if body.role == "clinician":
+    """Login as a patient or clinic management."""
+    if body.role in ["clinician", "clinic"]:
+        if body.password and body.password not in ["1234", "admin", "nephro", "clinic123", "passcode", "password"]:
+            raise HTTPException(401, "Invalid Clinic Access Key (Default PIN: 1234)")
+        staff_display = body.staff_id or body.email or "Dr. Nephrology / Clinic Care Lead"
         return {
             "ok": True,
             "role": "clinician",
-            "name": "Dr. Nephrology / Triage Care Team",
-            "message": "Welcome to the Clinician Monitoring Portal",
+            "name": staff_display,
+            "message": "Welcome to the Clinic Management Portal",
         }
 
     # 1-click Demo Quick Login
