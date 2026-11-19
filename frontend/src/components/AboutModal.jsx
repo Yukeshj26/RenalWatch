@@ -31,7 +31,7 @@ export default function AboutModal() {
             <b className="text-ink">4. Clinician Priority Dashboard:</b> Color-coded priority queue with a 1-line reason for each triage flag so care teams know who to call first.
           </div>
           <div className="p-2.5 rounded-lg bg-bg border border-line">
-            <b className="text-ink">5. Hard-Coded Safety Firewall:</b> Zero AI hallucination risk for critical life-threatening emergencies.
+            <b className="text-ink">5. Deterministic Safety Firewall:</b> Zero AI hallucination risk for critical life-threatening emergencies.
           </div>
         </div>
       </div>

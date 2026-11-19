@@ -36,7 +36,7 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
         body: JSON.stringify({
           role: 'patient',
           phone: phone.trim(),
-          password: patientPassword || '1234',
+          password: patientPassword,
         }),
       });
       const data = await res.json();
@@ -63,7 +63,7 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
         body: JSON.stringify({
           role: 'clinician',
           staff_id: staffId.trim(),
-          password: clinicPasscode || '1234',
+          password: clinicPasscode,
         }),
       });
       const data = await res.json();
@@ -119,7 +119,7 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
                 type="text"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
-                placeholder="e.g. +91-9876500001 or Arun K"
+                placeholder="Enter registered mobile number or name"
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
                 required
               />
@@ -131,7 +131,6 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
               <label className="block text-xs font-bold uppercase tracking-wider text-mute">
                 PIN or Password
               </label>
-              <span className="text-[11px] text-mute">Default: 1234</span>
             </div>
             <div className="relative">
               <Lock size={15} className="absolute left-3.5 top-3.5 text-mute" />
@@ -186,7 +185,7 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
                 type="text"
                 value={staffId}
                 onChange={e => setStaffId(e.target.value)}
-                placeholder="e.g. dr.ashwin@renalwatch.care or clinical-lead"
+                placeholder="Enter staff ID or official email"
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
                 required
               />
@@ -198,7 +197,6 @@ export default function LoginModal({ onLoginSuccess, onSwitchToRegister, initial
               <label className="block text-xs font-bold uppercase tracking-wider text-mute">
                 Clinic Access Key / Passcode
               </label>
-              <span className="text-[11px] text-mute">Default: 1234</span>
             </div>
             <div className="relative">
               <Lock size={15} className="absolute left-3.5 top-3.5 text-mute" />

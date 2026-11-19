@@ -8,7 +8,7 @@ export default function SafetyModal() {
         <ShieldAlert size={22} className="text-risk-high shrink-0 mt-0.5" />
         <div>
           <h3 className="font-heading font-bold text-risk-high text-base">
-            Hard-Coded Emergency Protocols
+            Clinical Emergency Protocols
           </h3>
           <p className="text-xs text-ink/80 mt-1 leading-relaxed">
             RenalWatch enforces strict safety firewalls. When life-threatening symptoms are reported, the system <b>immediately displays direct emergency guidance</b> without passing through any generative AI text model.

@@ -9,7 +9,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
   const [fluidLimit, setFluidLimit] = useState('1000');
   const [dialysisSchedule, setDialysisSchedule] = useState('Mon,Wed,Fri');
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('1234');
+  const [password, setPassword] = useState('');
   const [language, setLanguage] = useState('en');
 
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
 
   async function handleRegister(e) {
     e.preventDefault();
-    if (!name || !age || !dryWeight || !phone) return;
+    if (!name || !age || !dryWeight || !phone || !password) return;
 
     setLoading(true);
     setError(null);
@@ -34,7 +34,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
           fluid_limit: parseInt(fluidLimit, 10) || 1000,
           dialysis_schedule: dialysisSchedule,
           phone: phone.trim(),
-          password: password || '1234',
+          password: password.trim(),
           language,
         }),
       });
@@ -183,7 +183,7 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="e.g. 1234"
+            placeholder="Create PIN or Password"
             className="w-full px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
             required
           />

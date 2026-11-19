@@ -34,9 +34,9 @@ const QUICK_NOTE_EXAMPLES = [
 export default function LogHealthModal({ patients, selectedPatientId, currentPatient, onLogSaved }) {
   const [pid, setPid] = useState(currentPatient?.id || selectedPatientId || (patients[0] ? patients[0].id : ''));
   const [weight, setWeight] = useState('');
-  const [bpSys, setBpSys] = useState('120');
-  const [bpDia, setBpDia] = useState('80');
-  const [heartRate, setHeartRate] = useState('72');
+  const [bpSys, setBpSys] = useState('');
+  const [bpDia, setBpDia] = useState('');
+  const [heartRate, setHeartRate] = useState('');
   const [symptoms, setSymptoms] = useState([]);
   const [note, setNote] = useState('');
   const [lang, setLang] = useState(currentPatient?.language || 'en');
@@ -259,6 +259,7 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
               max="240"
               value={bpSys}
               onChange={e => setBpSys(e.target.value)}
+              placeholder="e.g. 120"
               className="w-full mt-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
               required
             />
@@ -271,6 +272,7 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
               max="140"
               value={bpDia}
               onChange={e => setBpDia(e.target.value)}
+              placeholder="e.g. 80"
               className="w-full mt-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
               required
             />
@@ -283,6 +285,7 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
               max="200"
               value={heartRate}
               onChange={e => setHeartRate(e.target.value)}
+              placeholder="e.g. 72"
               className="w-full mt-1 px-3 py-2 rounded-lg border border-line bg-bg focus:border-teal outline-none text-sm"
             />
           </div>

@@ -60,7 +60,7 @@ class RegisterBody(BaseModel):
     fluid_limit: int = 1000
     dialysis_schedule: str = "Mon,Wed,Fri"
     phone: str
-    password: str = "1234"
+    password: str
     language: str = "en"
 
 
@@ -68,9 +68,8 @@ class LoginBody(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
     staff_id: Optional[str] = None
-    password: Optional[str] = "1234"
+    password: Optional[str] = None
     role: str = "patient"
-    patient_id: Optional[int] = None
 
 
 
@@ -270,9 +269,15 @@ def register(body: RegisterBody):
 def login(body: LoginBody):
     """Login as a patient or clinic management."""
     if body.role in ["clinician", "clinic"]:
-        if body.password and body.password not in ["1234", "admin", "nephro", "clinic123", "passcode", "password"]:
-            raise HTTPException(401, "Invalid Clinic Access Key (Default PIN: 1234)")
-        staff_display = body.staff_id or body.email or "Dr. Nephrology / Clinic Care Lead"
+        if not body.password or not body.password.strip():
+            raise HTTPException(400, "Clinic Access Key / Passcode is required")
+
+        # Check against CLINIC_ACCESS_KEY if configured in environment
+        clinic_key = os.getenv("CLINIC_ACCESS_KEY")
+        if clinic_key and body.password.strip() != clinic_key:
+            raise HTTPException(401, "Invalid Clinic Access Key")
+
+        staff_display = body.staff_id or body.email or "Care Team Clinician"
         return {
             "ok": True,
             "role": "clinician",
@@ -280,16 +285,11 @@ def login(body: LoginBody):
             "message": "Welcome to the Clinic Management Portal",
         }
 
-    # 1-click Demo Quick Login
-    if body.patient_id is not None:
-        try:
-            state = patient_state(body.patient_id)
-            return {"ok": True, "role": "patient", "patient": state}
-        except HTTPException:
-            raise HTTPException(404, "Patient ID not found")
+    if not body.phone or not body.phone.strip():
+        raise HTTPException(400, "Phone number or patient name required")
 
-    if not body.phone:
-        raise HTTPException(400, "Phone number or patient selection required")
+    if not body.password or not body.password.strip():
+        raise HTTPException(400, "Password or PIN required")
 
     c = db.conn()
     try:
@@ -303,9 +303,9 @@ def login(body: LoginBody):
             raise HTTPException(401, "No patient found with that phone number or name")
 
         pat = dict(row)
-        # Check password (allow default 1234 or matching password)
-        if pat.get("password") and pat["password"] != body.password and body.password != "1234":
-            raise HTTPException(401, "Incorrect password")
+        # Check password against stored patient password
+        if pat.get("password") and pat["password"] != body.password.strip():
+            raise HTTPException(401, "Incorrect password or PIN")
 
         state = patient_state(pat["id"])
         return {"ok": True, "role": "patient", "patient": state}

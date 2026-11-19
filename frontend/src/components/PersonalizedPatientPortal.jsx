@@ -234,7 +234,7 @@ export default function PersonalizedPatientPortal({
           {/* Emergency Safety Alert Card */}
           <div className="p-5 rounded-2xl bg-risk-highBg/50 border border-risk-high/30 space-y-2">
             <div className="flex items-center gap-2 text-risk-high font-bold text-xs uppercase tracking-wider">
-              <ShieldAlert size={16} /> Hard-Coded Emergency Warning
+              <ShieldAlert size={16} /> Clinical Emergency Warning
             </div>
             <p className="text-xs text-ink/80 leading-relaxed">
               If you experience sudden <b>breathlessness</b>, <b>chest pain</b>, or <b>severe dizziness</b>, do not wait for your next session. Contact emergency medical services immediately.

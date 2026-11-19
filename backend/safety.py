@@ -1,7 +1,7 @@
 """
 safety.py – Emergency / red-flag detection layer for RenalWatch.
 
-All advisory text is hard-coded (no AI-generated advice). Supports English,
+All advisory text uses deterministic clinical rules (no AI-generated advice). Supports English,
 Tamil (ta) and Hindi (hi).
 """
 
@@ -40,7 +40,7 @@ STRUCTURED_EMERGENCIES: set[str] = {
 }
 
 # ---------------------------------------------------------------------------
-# Hard-coded emergency messages per language
+# Deterministic emergency messages per language
 # ---------------------------------------------------------------------------
 EMERGENCY_MESSAGES: dict[str, str] = {
     "en": (
