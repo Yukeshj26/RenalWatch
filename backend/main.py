@@ -125,6 +125,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Eager initialization for serverless platforms where ASGI lifespan is not invoked
+if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+    try:
+        db.init()
+        risk.train_model()
+    except Exception:
+        pass
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
