@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from backend import db, risk, nutrition, safety, note_analyzer, sms
+from backend import db, risk, nutrition, safety, note_analyzer, sms, config, counterfactual
 
 # ---------------------------------------------------------------------------
 # Pydantic request / response models
@@ -105,6 +105,83 @@ app = FastAPI(
 
 # Static files directory
 _FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+
+
+# ---------------------------------------------------------------------------
+# Silent-Patient Timing & Detection Helpers
+# ---------------------------------------------------------------------------
+
+def get_hours_to_next_session(schedule: str, ref_dt: Optional[datetime] = None) -> float:
+    """Calculate hours from ref_dt until the patient's next scheduled dialysis session."""
+    now = ref_dt or datetime.now()
+    day_map = {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
+    scheduled_weekdays = [day_map[s.strip()] for s in schedule.split(",") if s.strip() in day_map]
+    if not scheduled_weekdays:
+        scheduled_weekdays = [0, 2, 4]  # Default Mon,Wed,Fri
+
+    for day_offset in range(0, 8):
+        candidate_date = now.date() + timedelta(days=day_offset)
+        if candidate_date.weekday() in scheduled_weekdays:
+            candidate_dt = datetime.combine(candidate_date, datetime.min.time()).replace(hour=8, minute=0)
+            if candidate_dt > now:
+                diff_hours = (candidate_dt - now).total_seconds() / 3600.0
+                return max(0.5, round(diff_hours, 1))
+    return 48.0
+
+
+def get_hours_since_last_checkin(pid: int, c: sqlite3.Connection, ref_dt: Optional[datetime] = None) -> tuple[float, Optional[str]]:
+    """Compute elapsed hours since patient's most recent health log check-in."""
+    now = ref_dt or datetime.now()
+    row = c.execute(
+        "SELECT day, created_at FROM logs WHERE pid = ? ORDER BY day DESC, id DESC LIMIT 1",
+        (pid,),
+    ).fetchone()
+    if not row:
+        return 999.0, None
+
+    created_at_str = None
+    try:
+        created_at_str = row["created_at"]
+    except (IndexError, KeyError):
+        created_at_str = None
+
+    if created_at_str:
+        try:
+            checkin_dt = datetime.fromisoformat(created_at_str)
+        except (ValueError, TypeError):
+            checkin_dt = datetime.combine(date.fromisoformat(row["day"]), datetime.min.time()).replace(hour=9, minute=0)
+    else:
+        try:
+            checkin_dt = datetime.combine(date.fromisoformat(row["day"]), datetime.min.time()).replace(hour=9, minute=0)
+        except (ValueError, TypeError):
+            return 999.0, None
+
+    elapsed_hours = max(0.0, (now - checkin_dt).total_seconds() / 3600.0)
+    return round(elapsed_hours, 1), checkin_dt.isoformat()
+
+
+def evaluate_silent_status(pid: int, schedule: str, c: sqlite3.Connection) -> dict:
+    """Determine if a patient is flagged as 'silent' based on configured thresholds."""
+    hours_since, last_time = get_hours_since_last_checkin(pid, c)
+    hours_to_next = get_hours_to_next_session(schedule)
+
+    is_silent = False
+    silent_reason = None
+
+    if hours_since > config.SILENT_HOURS_DEFAULT:
+        is_silent = True
+        silent_reason = f"No check-in for {int(hours_since)}h (> {int(config.SILENT_HOURS_DEFAULT)}h threshold)"
+    elif hours_to_next > config.NEXT_SESSION_LONG_GAP_HOURS and hours_since > config.SILENT_HOURS_LONG_GAP:
+        is_silent = True
+        silent_reason = f"No check-in for {int(hours_since)}h during high-risk gap (next session in {int(hours_to_next)}h > {int(config.NEXT_SESSION_LONG_GAP_HOURS)}h)"
+
+    return {
+        "is_silent": is_silent,
+        "silent_reason": silent_reason,
+        "hours_since_checkin": hours_since,
+        "hours_to_next_session": hours_to_next,
+        "last_checkin_time": last_time,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -218,6 +295,9 @@ def patient_state(pid: int) -> dict:
             bp_dia=bp_dia,
         )
 
+        # Silent status evaluation
+        silent_info = evaluate_silent_status(pid, pat.get("dialysis_schedule", "Mon,Wed,Fri"), c)
+
         return {
             **pat,
             "days_since_session": days_since,
@@ -233,6 +313,11 @@ def patient_state(pid: int) -> dict:
             "recent_meals": meals_list,
             "sessions": sessions_list,
             "risk": risk_result,
+            "is_silent": silent_info["is_silent"],
+            "silent_reason": silent_info["silent_reason"],
+            "hours_since_checkin": silent_info["hours_since_checkin"],
+            "hours_to_next_session": silent_info["hours_to_next_session"],
+            "last_checkin_time": silent_info["last_checkin_time"],
         }
     finally:
         c.close()
@@ -475,8 +560,8 @@ def get_patient_dashboard(pid: int):
 # ---------------------------------------------------------------------------
 
 @app.get("/api/patients")
-def list_patients():
-    """Return all patients with risk scores, sorted by score descending."""
+def list_patients(silent_first: bool = False):
+    """Return all patients with risk scores and silent-patient triage status."""
     c = db.conn()
     try:
         rows = c.execute("SELECT id FROM patients").fetchall()
@@ -496,10 +581,24 @@ def list_patients():
             "level": state["risk"]["level"],
             "summary": state["risk"]["summary"],
             "factors": state["risk"]["factors"],
+            "is_silent": state["is_silent"],
+            "silent_reason": state["silent_reason"],
+            "hours_since_checkin": state["hours_since_checkin"],
+            "hours_to_next_session": state["hours_to_next_session"],
+            "hours_since_session": round(state["days_since_session"] * 24.0, 1),
+            "current_weight": state["current_weight"],
+            "dry_weight": state["dry_weight"],
         })
 
-    # Sort by risk score descending
-    patients.sort(key=lambda p: p["score"], reverse=True)
+    # Escalate: ranked using their last known risk score and hours since last session
+    if silent_first:
+        patients.sort(
+            key=lambda p: (1 if p["is_silent"] else 0, p["score"], p["hours_since_session"]),
+            reverse=True,
+        )
+    else:
+        patients.sort(key=lambda p: p["score"], reverse=True)
+
     return patients
 
 
@@ -507,6 +606,13 @@ def list_patients():
 def get_patient(pid: int):
     """Full patient detail with weight history, nutrients, risk and meals."""
     return patient_state(pid)
+
+
+@app.get("/api/patients/{pid}/what-if")
+def get_patient_what_if(pid: int):
+    """Compute counterfactual risk reductions and food swaps for a patient."""
+    state = patient_state(pid)
+    return counterfactual.compute_what_if(state)
 
 
 @app.post("/api/patients/{pid}/logs")
@@ -520,12 +626,13 @@ def post_log(pid: int, body: LogBody):
             raise HTTPException(404, f"Patient {pid} not found")
 
         today_str = date.today().isoformat()
+        now_iso = datetime.now().isoformat()
         c.execute(
             """INSERT INTO logs
-               (pid, day, weight, bp_sys, bp_dia, heart_rate, symptoms, note)
-               VALUES (?,?,?,?,?,?,?,?)""",
+               (pid, day, weight, bp_sys, bp_dia, heart_rate, symptoms, note, created_at)
+               VALUES (?,?,?,?,?,?,?,?,?)""",
             (pid, today_str, body.weight, body.bp_sys, body.bp_dia,
-             body.heart_rate, json.dumps(body.symptoms), body.note),
+             body.heart_rate, json.dumps(body.symptoms), body.note, now_iso),
         )
         c.commit()
     finally:

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import WhatIfRiskPanel from './WhatIfRiskPanel';
 import {
   Activity,
   Utensils,
@@ -753,6 +754,13 @@ export default function PersonalizedPatientPortal({
           </div>
         </div>
       </div>
+
+      {/* "What would lower my risk?" Interactive Counterfactual & Food-Swap Panel */}
+      <WhatIfRiskPanel
+        patientId={p.id}
+        currentRisk={r}
+        onRefresh={onRefresh}
+      />
     </div>
   );
 }

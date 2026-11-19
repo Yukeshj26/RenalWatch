@@ -1,12 +1,29 @@
 import React, { useState } from 'react';
-import { Filter, User, Calendar, AlertCircle } from 'lucide-react';
+import { Filter, User, Calendar, AlertCircle, Clock } from 'lucide-react';
 
 export default function ClinicianDashboard({ patients, onSelectPatient }) {
   const [filter, setFilter] = useState('all');
+  const [showSilentFirst, setShowSilentFirst] = useState(false);
 
-  const filteredPatients = patients.filter(
+  const silentCount = patients.filter(p => p.is_silent).length;
+
+  let filteredPatients = patients.filter(
     p => filter === 'all' || p.level === filter
   );
+
+  if (showSilentFirst) {
+    filteredPatients = [...filteredPatients].sort((a, b) => {
+      // Prioritize silent patients first
+      if (a.is_silent && !b.is_silent) return -1;
+      if (!a.is_silent && b.is_silent) return 1;
+      // Ranked using last known risk score descending
+      if (b.score !== a.score) return b.score - a.score;
+      // Then hours/days since last dialysis session descending
+      const aHours = a.hours_since_session || (a.days_since_session * 24);
+      const bHours = b.hours_since_session || (b.days_since_session * 24);
+      return bHours - aHours;
+    });
+  }
 
   const stats = {
     total: patients.length,
@@ -70,6 +87,32 @@ export default function ClinicianDashboard({ patients, onSelectPatient }) {
           >
             Low ({stats.low})
           </button>
+
+          <div className="h-5 w-px bg-line mx-1 hidden sm:block" />
+
+          {/* Silent Patients Filter Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowSilentFirst(prev => !prev)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all ${
+              showSilentFirst
+                ? 'bg-amber-500 border-amber-600 text-white shadow-sm ring-2 ring-amber-300'
+                : 'bg-white border-line text-ink hover:border-amber-400'
+            }`}
+            title="Escalate silent patients without recent check-ins"
+          >
+            <Clock size={13} className={showSilentFirst ? 'text-white' : 'text-amber-600'} />
+            Show silent patients first
+            {silentCount > 0 && (
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                  showSilentFirst ? 'bg-white text-amber-800' : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                {silentCount}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
@@ -92,9 +135,20 @@ export default function ClinicianDashboard({ patients, onSelectPatient }) {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="font-heading font-bold text-base text-ink">
-                      {p.name}
-                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-heading font-bold text-base text-ink">
+                        {p.name}
+                      </h3>
+                      {p.is_silent && (
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs"
+                          title={p.silent_reason || `No check-in for ${Math.round(p.hours_since_checkin)}h`}
+                        >
+                          <Clock size={11} className="text-amber-700 shrink-0" />
+                          No check-in {p.hours_since_checkin ? `(${Math.round(p.hours_since_checkin)}h)` : ''}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs text-mute">
                       Age {p.age} {p.gender ? `· ${p.gender}` : ''}
                     </span>
@@ -179,8 +233,19 @@ export default function ClinicianDashboard({ patients, onSelectPatient }) {
                       className="hover:bg-tint-light/70 cursor-pointer transition-colors group"
                     >
                       <td className="py-4 px-5">
-                        <div className="font-semibold text-ink group-hover:text-teal transition-colors">
-                          {p.name}
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-ink group-hover:text-teal transition-colors">
+                            {p.name}
+                          </span>
+                          {p.is_silent && (
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs shrink-0"
+                              title={p.silent_reason || `No check-in for ${Math.round(p.hours_since_checkin)}h`}
+                            >
+                              <Clock size={11} className="text-amber-700 shrink-0" />
+                              No check-in {p.hours_since_checkin ? `(${Math.round(p.hours_since_checkin)}h)` : ''}
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-mute mt-0.5">
                           Age {p.age} {p.gender ? `· ${p.gender}` : ''}

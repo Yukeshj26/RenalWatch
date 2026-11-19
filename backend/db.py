@@ -84,7 +84,8 @@ CREATE TABLE IF NOT EXISTS logs (
     bp_dia     INTEGER,
     heart_rate INTEGER DEFAULT 0,
     symptoms   TEXT    DEFAULT '[]',   -- JSON array of strings
-    note       TEXT
+    note       TEXT,
+    created_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS meals (
@@ -272,8 +273,14 @@ def seed(c: sqlite3.Connection) -> None:
         current_weight = dry_w  # resets after each dialysis session
 
         for day_offset in range(6, -1, -1):       # day 6 (oldest) → 0 (today)
+            # To realistically demonstrate silent-patient triage detection (>24h without check-in),
+            # skip day 0 (today) check-in for Meena S (idx 1) and Joseph T (idx 8)
+            if idx in [1, 8] and day_offset == 0:
+                continue
+
             d = today - timedelta(days=day_offset)
             day_str = d.isoformat()
+            log_created_at = f"{day_str}T09:00:00"
 
             # Simulate dialysis: weight resets to near dry weight on session day
             if _is_session_day(d, schedule) and d <= last_sess:
@@ -327,11 +334,11 @@ def seed(c: sqlite3.Connection) -> None:
 
             c.execute(
                 """INSERT INTO logs
-                   (pid, day, weight, bp_sys, bp_dia, heart_rate, symptoms, note)
-                   VALUES (?,?,?,?,?,?,?,?)""",
+                   (pid, day, weight, bp_sys, bp_dia, heart_rate, symptoms, note, created_at)
+                   VALUES (?,?,?,?,?,?,?,?,?)""",
                 (pid, day_str, round(current_weight, 1),
                  bp_sys, bp_dia, heart_rate,
-                 json.dumps(symptoms), ""),
+                 json.dumps(symptoms), "", log_created_at),
             )
 
             # --- Meals for the day ------------------------------------------
@@ -412,6 +419,7 @@ def init() -> None:
             "ALTER TABLE patients ADD COLUMN dm INTEGER DEFAULT 0",
             "ALTER TABLE patients ADD COLUMN hemo REAL",
             "ALTER TABLE patients ADD COLUMN baseline_pot REAL",
+            "ALTER TABLE logs ADD COLUMN created_at TEXT",
         ]:
             try:
                 c.execute(col_stmt)
