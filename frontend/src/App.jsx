@@ -26,7 +26,8 @@ export default function App() {
     try {
       const res = await fetch('/api/patients');
       if (res.ok) {
-        const data = await res.json();
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : [];
         setPatients(data);
       }
     } catch (err) {

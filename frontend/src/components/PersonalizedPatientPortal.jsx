@@ -30,12 +30,19 @@ export default function PersonalizedPatientPortal({
     if (!patient?.id) return;
     setLoading(true);
     fetch(`/api/patients/${patient.id}/dashboard`)
-      .then(res => res.json())
+      .then(async res => {
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const text = await res.text();
+        return text ? JSON.parse(text) : null;
+      })
       .then(d => {
-        setDashboard(d);
+        if (d) setDashboard(d);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        console.error('Error fetching dashboard:', err);
+        setLoading(false);
+      });
   }, [patient?.id, onRefresh]);
 
   if (loading || !dashboard) {

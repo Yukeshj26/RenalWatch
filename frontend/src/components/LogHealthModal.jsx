@@ -82,7 +82,11 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
   useEffect(() => {
     if (pid) {
       fetch(`/api/patients/${pid}`)
-        .then(res => res.json())
+        .then(async res => {
+          if (!res.ok) return null;
+          const text = await res.text();
+          return text ? JSON.parse(text) : null;
+        })
         .then(data => {
           if (data && data.current_weight) {
             setWeight(String(data.current_weight));
@@ -114,8 +118,9 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
         }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setNoteAnalysis(data);
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : null;
+        if (data) setNoteAnalysis(data);
       }
     } catch (err) {
       console.error('Note analysis error:', err);
@@ -190,7 +195,8 @@ export default function LogHealthModal({ patients, selectedPatientId, currentPat
       });
 
       if (!res.ok) throw new Error('Failed to save log');
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       setResult(data);
       onLogSaved();
     } catch (err) {

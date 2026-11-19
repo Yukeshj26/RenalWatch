@@ -65,7 +65,13 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phone.trim() }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error('Server connection error. Please try again.');
+      }
       if (!res.ok) throw new Error(data.detail || 'Failed to dispatch OTP');
 
       setOtpSent(true);
@@ -99,7 +105,13 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: phone.trim(), otp: otp.trim() }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error('Server connection error. Please try again.');
+      }
       if (!res.ok) throw new Error(data.detail || 'OTP verification failed');
 
       setOtpVerified(true);
@@ -142,7 +154,13 @@ export default function RegisterModal({ onRegisterSuccess, onSwitchToLogin }) {
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error('Server connection error. Please try again.');
+      }
       if (!res.ok) throw new Error(data.detail || 'Registration failed');
       onRegisterSuccess(data);
     } catch (err) {

@@ -52,7 +52,14 @@ export default function RoleGateway({
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error('Server connection error. Please try again.');
+      }
+
       if (!res.ok) {
         throw new Error(data.detail || 'Invalid patient phone or password');
       }
@@ -83,7 +90,14 @@ export default function RoleGateway({
         }),
       });
 
-      const data = await res.json();
+      const text = await res.text();
+      let data = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error('Server connection error. Please try again.');
+      }
+
       if (!res.ok) {
         throw new Error(data.detail || 'Invalid clinic credentials');
       }

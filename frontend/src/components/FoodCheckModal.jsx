@@ -137,7 +137,8 @@ export default function FoodCheckModal({ patients, selectedPatientId, currentPat
       });
 
       if (!res.ok) throw new Error('Failed to analyze meal');
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       setResult(data);
       setItems(data.items || []);
       setTotal(data.total || { k: 0, p: 0, na: 0, fluid: 0 });
