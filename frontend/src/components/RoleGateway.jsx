@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   User,
-  Stethoscope,
-  Sparkles,
   ShieldAlert,
   ArrowRight,
   Phone,
@@ -10,13 +8,11 @@ import {
   Mail,
   Building2,
   CheckCircle2,
-  Users,
   UserPlus,
   AlertCircle,
 } from 'lucide-react';
 
 export default function RoleGateway({
-  patients,
   onEnterAsPatient,
   onEnterAsClinician,
   onOpenRegisterModal,
@@ -27,14 +23,13 @@ export default function RoleGateway({
 
   // Patient Login Form state
   const [patientPhone, setPatientPhone] = useState('');
-  const [patientPassword, setPatientPassword] = useState('1234');
-  const [selectedDemoPatientId, setSelectedDemoPatientId] = useState(patients[0]?.id || 1);
+  const [patientPassword, setPatientPassword] = useState('');
   const [patientLoading, setPatientLoading] = useState(false);
   const [patientError, setPatientError] = useState(null);
 
   // Clinic Management Login Form state
-  const [clinicStaffId, setClinicStaffId] = useState('dr.ashwin@renalwatch.care');
-  const [clinicPasscode, setClinicPasscode] = useState('1234');
+  const [clinicStaffId, setClinicStaffId] = useState('');
+  const [clinicPasscode, setClinicPasscode] = useState('');
   const [clinicLoading, setClinicLoading] = useState(false);
   const [clinicError, setClinicError] = useState(null);
 
@@ -53,7 +48,7 @@ export default function RoleGateway({
         body: JSON.stringify({
           role: 'patient',
           phone: patientPhone.trim(),
-          password: patientPassword,
+          password: patientPassword || '1234',
         }),
       });
 
@@ -69,36 +64,11 @@ export default function RoleGateway({
     }
   }
 
-  // Handle 1-click quick demo patient login
-  async function handleQuickDemoPatientSubmit() {
-    setPatientLoading(true);
-    setPatientError(null);
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: 'patient',
-          patient_id: parseInt(selectedDemoPatientId, 10),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || 'Demo login failed');
-      }
-      onEnterAsPatient(data);
-    } catch (err) {
-      setPatientError(err.message || 'Demo login failed');
-    } finally {
-      setPatientLoading(false);
-    }
-  }
-
   // Handle clinic management login with staff ID & passcode
   async function handleClinicSubmit(e) {
     e.preventDefault();
+    if (!clinicStaffId.trim()) return;
+
     setClinicLoading(true);
     setClinicError(null);
 
@@ -109,7 +79,7 @@ export default function RoleGateway({
         body: JSON.stringify({
           role: 'clinician',
           staff_id: clinicStaffId.trim(),
-          password: clinicPasscode,
+          password: clinicPasscode || '1234',
         }),
       });
 
@@ -125,48 +95,21 @@ export default function RoleGateway({
     }
   }
 
-  // Handle 1-click quick clinic access
-  async function handleQuickClinicEnter() {
-    setClinicLoading(true);
-    setClinicError(null);
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: 'clinician',
-          staff_id: 'Dr. Nephrology (Unit Lead)',
-          password: '1234',
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        onEnterAsClinician(data);
-      }
-    } catch (err) {
-      setClinicError('Failed to enter clinic management');
-    } finally {
-      setClinicLoading(false);
-    }
-  }
-
   return (
-    <div className="pt-24 pb-20 px-4 sm:px-8 max-w-4xl mx-auto space-y-8 animate-fadeSlideUp">
+    <div className="pt-24 pb-20 px-4 sm:px-8 max-w-3xl mx-auto space-y-8 animate-fadeSlideUp">
       {/* Intro Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-3">
+      <div className="text-center max-w-xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-tint text-teal-dark text-xs font-semibold tracking-wide border border-teal/20 shadow-xs">
           <span className="w-2 h-2 rounded-full bg-teal animate-pulse" />
           RenalWatch Dialysis Care Ecosystem
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-ink tracking-tight">
-          Select Role &amp; Enter Credentials
+          Select Role &amp; Sign In
         </h1>
 
         <p className="text-sm sm:text-base text-mute">
-          Choose whether you are logging in as a <strong>Dialysis Patient</strong> or for <strong>Clinic Management</strong> to access your dedicated portal.
+          Choose whether you are signing in as a <strong>Dialysis Patient</strong> or for <strong>Clinic Management</strong> to enter your secure portal.
         </p>
       </div>
 
@@ -225,57 +168,12 @@ export default function RoleGateway({
                     Patient Sign In
                   </h3>
                   <p className="text-xs text-mute mt-0.5">
-                    Log in with your registered phone number to access your personal dashboard.
+                    Enter your registered phone number or name and password to access your portal.
                   </p>
                 </div>
                 <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-tint text-teal-dark uppercase tracking-wide">
                   Patient Role
                 </span>
-              </div>
-
-              {/* 1-Click Demo Patient Quick Selector */}
-              <div className="p-4 rounded-2xl bg-tint-light border border-teal/25 space-y-2.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-teal-dark flex items-center gap-1.5">
-                    <Sparkles size={15} className="text-teal" /> 1-Click Instant Demo Login
-                  </span>
-                  <span className="text-[10px] uppercase font-bold text-mute bg-white px-2 py-0.5 rounded-full border border-teal/15">
-                    For Evaluators
-                  </span>
-                </div>
-                <p className="text-xs text-mute">
-                  Choose any seeded patient persona to enter their personalized portal immediately:
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <select
-                    value={selectedDemoPatientId}
-                    onChange={e => setSelectedDemoPatientId(e.target.value)}
-                    className="flex-1 px-3 py-2.5 rounded-xl border border-line bg-white text-xs text-ink font-semibold outline-none focus:border-teal"
-                  >
-                    {patients.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.level.toUpperCase()} Risk · Score {p.score} · Age {p.age})
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={handleQuickDemoPatientSubmit}
-                    disabled={patientLoading}
-                    className="px-5 py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white text-xs font-bold shadow-sm transition-all whitespace-nowrap flex items-center justify-center gap-1.5 disabled:opacity-50"
-                  >
-                    {patientLoading ? 'Loading...' : 'Enter as Demo Patient'}
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-line" />
-                <span className="flex-shrink mx-3 text-xs text-mute uppercase font-bold tracking-wider">
-                  Or Log In with Credentials
-                </span>
-                <div className="flex-grow border-t border-line" />
               </div>
 
               {/* Standard Patient Credentials Form */}
@@ -302,7 +200,7 @@ export default function RoleGateway({
                     <label className="block text-xs font-bold uppercase tracking-wider text-mute">
                       PIN or Password
                     </label>
-                    <span className="text-[11px] text-teal-dark font-medium">Default PIN: 1234</span>
+                    <span className="text-[11px] text-mute">Default: 1234</span>
                   </div>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3.5 top-3.5 text-mute" />
@@ -310,8 +208,9 @@ export default function RoleGateway({
                       type="password"
                       value={patientPassword}
                       onChange={e => setPatientPassword(e.target.value)}
-                      placeholder="Enter PIN"
+                      placeholder="Enter PIN / Password"
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      required
                     />
                   </div>
                 </div>
@@ -332,7 +231,7 @@ export default function RoleGateway({
                   <ArrowRight size={16} />
                 </button>
 
-                <div className="text-center pt-1">
+                <div className="text-center pt-2">
                   <button
                     type="button"
                     onClick={onOpenRegisterModal}
@@ -362,38 +261,6 @@ export default function RoleGateway({
                 </span>
               </div>
 
-              {/* 1-Click Instant Clinic Access */}
-              <div className="p-4 rounded-2xl bg-tint-light border border-teal/25 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-teal-dark flex items-center gap-1.5">
-                    <Sparkles size={15} className="text-teal" /> 1-Click Instant Clinic Lead Access
-                  </span>
-                  <span className="text-[10px] uppercase font-bold text-mute bg-white px-2 py-0.5 rounded-full border border-teal/15">
-                    Lead Nephrologist
-                  </span>
-                </div>
-                <p className="text-xs text-mute">
-                  Instantly open the triage monitoring dashboard for all active patients:
-                </p>
-                <button
-                  type="button"
-                  onClick={handleQuickClinicEnter}
-                  disabled={clinicLoading}
-                  className="w-full py-2.5 rounded-xl bg-teal hover:bg-teal-dark text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {clinicLoading ? 'Opening Dashboard...' : 'Enter as Dr. Nephrology (Care Lead)'}
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-line" />
-                <span className="flex-shrink mx-3 text-xs text-mute uppercase font-bold tracking-wider">
-                  Or Log In with Staff Passcode
-                </span>
-                <div className="flex-grow border-t border-line" />
-              </div>
-
               {/* Clinic Credentials Form */}
               <form onSubmit={handleClinicSubmit} className="space-y-4">
                 <div>
@@ -418,7 +285,7 @@ export default function RoleGateway({
                     <label className="block text-xs font-bold uppercase tracking-wider text-mute">
                       Clinic Access Key / Passcode
                     </label>
-                    <span className="text-[11px] text-teal-dark font-medium">Default Passcode: 1234</span>
+                    <span className="text-[11px] text-mute">Default: 1234</span>
                   </div>
                   <div className="relative">
                     <Lock size={16} className="absolute left-3.5 top-3.5 text-mute" />
@@ -426,8 +293,9 @@ export default function RoleGateway({
                       type="password"
                       value={clinicPasscode}
                       onChange={e => setClinicPasscode(e.target.value)}
-                      placeholder="Enter Passcode (1234)"
+                      placeholder="Enter Passcode"
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-bg focus:border-teal outline-none text-sm font-medium"
+                      required
                     />
                   </div>
                 </div>
