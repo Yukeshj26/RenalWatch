@@ -29,27 +29,41 @@ def _resolve_db_path() -> Path:
         return Path(env_path)
     if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
         tmp_db = Path("/tmp/renalwatch.db")
-        if not tmp_db.exists() and _PROJ_DB_PATH.exists():
-            try:
-                shutil.copy2(str(_PROJ_DB_PATH), str(tmp_db))
-            except Exception:
-                pass
-        return tmp_db if tmp_db.exists() else _PROJ_DB_PATH
+        if not tmp_db.exists():
+            candidates = [
+                _PROJ_DB_PATH,
+                Path("renalwatch.db"),
+                Path(__file__).resolve().parent.parent / "renalwatch.db",
+            ]
+            for cand in candidates:
+                if cand.exists():
+                    try:
+                        shutil.copy2(str(cand), str(tmp_db))
+                        break
+                    except Exception:
+                        pass
+        return tmp_db
     return _PROJ_DB_PATH
 
 
 def conn() -> sqlite3.Connection:
     """Return a new SQLite connection with Row factory enabled."""
     db_file = _resolve_db_path()
-    c = sqlite3.connect(str(db_file))
+    c = sqlite3.connect(str(db_file), timeout=30.0)
     c.row_factory = sqlite3.Row
-    try:
-        c.execute("PRAGMA journal_mode=WAL")
-    except sqlite3.OperationalError:
+    if os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
         try:
             c.execute("PRAGMA journal_mode=DELETE")
-        except sqlite3.OperationalError:
+        except Exception:
             pass
+    else:
+        try:
+            c.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.OperationalError:
+            try:
+                c.execute("PRAGMA journal_mode=DELETE")
+            except sqlite3.OperationalError:
+                pass
     c.execute("PRAGMA foreign_keys=ON")
     return c
 

@@ -133,6 +133,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/api/health")
+@app.get("/health")
+def health_status():
+    """Service health and database connectivity probe."""
+    try:
+        c = db.conn()
+        c.execute("SELECT 1")
+        c.close()
+        db_ok = True
+    except Exception as e:
+        db_ok = False
+    return {
+        "status": "healthy" if db_ok else "degraded",
+        "database": "connected" if db_ok else "error",
+        "service": "RenalWatch API",
+        "timestamp": datetime.now().isoformat(),
+    }
+
 # Static files directory
 _FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 

@@ -24,6 +24,14 @@ from backend import config, risk
 # ---------------------------------------------------------------------------
 _DATA_DIR = Path(__file__).resolve().parent / "data"
 _FOODS_PATH = _DATA_DIR / "foods.json"
+if not _FOODS_PATH.exists():
+    for _alt in [
+        Path("backend/data/foods.json"),
+        Path(__file__).resolve().parent.parent / "backend" / "data" / "foods.json",
+    ]:
+        if _alt.exists():
+            _FOODS_PATH = _alt
+            break
 
 with open(_FOODS_PATH, "r", encoding="utf-8") as _f:
     _RAW_FOODS: dict = json.load(_f)
